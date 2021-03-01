@@ -1,5 +1,9 @@
-def sign(x):
-    pass 
+import numpy as np
 
-def magnitude(x):
-    pass
+THRESHOLD = 0.5
+
+def sign(x, threshold=THRESHOLD):
+    return np.sign(x - threshold)
+
+def magnitude(x, threshold=THRESHOLD):
+    return x - threshold

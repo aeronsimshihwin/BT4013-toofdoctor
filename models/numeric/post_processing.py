@@ -1,5 +1,7 @@
+import numpy as np
+
 def sign(x):
-    pass 
+    return np.sign(x)
 
 def magnitude(x):
-    pass
+    return np.abs(x)
