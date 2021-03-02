@@ -57,6 +57,11 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     sign = pd.DataFrame(index=utils.futuresList)
     magnitude = pd.DataFrame(index=utils.futuresList)
 
+    print(OPEN)
+    print(HIGH)
+    print(LOW)
+    print(CLOSE)
+    print(VOL)
     for model_name, model_wrapper in categorical.models.items():
         probs = model_wrapper(
             OPEN, HIGH, LOW, CLOSE, VOL,
