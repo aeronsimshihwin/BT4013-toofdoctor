@@ -30,9 +30,7 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     pos[longEquity]=1
     pos[shortEquity]=-1
 
-    weights = pos/numpy.nansum(abs(pos))
-
-    return weights, settings
+    return pos, settings
 
 
 def mySettings():
@@ -51,3 +49,4 @@ def mySettings():
 if __name__ == '__main__':
     import quantiacsToolbox
     results = quantiacsToolbox.runts(__file__)
+    # print(results["stats"])
