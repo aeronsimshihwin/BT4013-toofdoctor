@@ -1,2 +1,9 @@
+# IDEs
+.vscode
+
+# Caching
 __pycache__/
+.ipynb_checkpoints/
+
+# Data files
 tickerData/
