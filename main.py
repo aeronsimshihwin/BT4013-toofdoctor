@@ -1,9 +1,8 @@
-### Quantiacs Trend Following Trading System Example
-# import necessary Packages below:
 import numpy as np
 import pandas as pd
 
-from models import categorical, numeric, strategy
+from models import categorical, numeric
+import strategy
 import utils
 
 def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
@@ -65,8 +64,8 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
             economic_indicators = economic_indicators, 
         )
         prediction[model_name] = probs
-        sign[model_name] = categorical.sign(probs)
-        magnitude[model_name] = categorical.magnitude(probs)
+        sign[model_name] = utils.sign(probs)
+        magnitude[model_name] = utils.magnitude(probs)
 
     for model_name, model_wrapper in numeric.models.items():
         price_diff = model_wrapper(
@@ -75,8 +74,8 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
             economic_indicators = economic_indicators, 
         )
         prediction[model_name] = price_diff
-        sign[model_name] = numeric.sign(price_diff)
-        magnitude[model_name] = numeric.magnitude(price_diff)
+        sign[model_name] = utils.sign(price_diff)
+        magnitude[model_name] = utils.magnitude(price_diff)
 
     # Determine trade positions for a set of strategies
     # positions = pd.DataFrame(index=utils.futuresList)
@@ -115,11 +114,9 @@ def mySettings():
     ''' Define your trading system settings here '''
     settings= {}
     settings['markets']  = utils.futuresAllList
-    # settings['beginInSample'] = '20190123'
-    settings['beginInSample'] = '20210101'
+    settings['beginInSample'] = '20190123'
     settings['endInSample'] = '20210331'
-    # settings['lookback']= 504
-    settings['lookback']= 30
+    settings['lookback']= 504
     settings['budget']= 10**6
     settings['slippage']= 0.05
 
