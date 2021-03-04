@@ -41,14 +41,14 @@ def prepare_data(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     # })
     
     # Pre-processed X data
-    for future in utils.futuresList:
+    for i, future in enumerate(utils.futuresList):
         # Slice data by futures
         df = pd.DataFrame({
-            'OPEN': OPEN[future],
-            'HIGH': HIGH[future],
-            'LOW': LOW[future],
-            'CLOSE': CLOSE[future],
-            'VOL': VOL[future],
+            'OPEN': OPEN[i],
+            'HIGH': HIGH[i],
+            'LOW': LOW[i],
+            'CLOSE': CLOSE[i],
+            'VOL': VOL[i],
         }, index=date_index)
         
         # Technical_indicators
@@ -110,14 +110,14 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     date_index = pd.to_datetime(DATE, format='%Y%m%d')
     data = dict()
 
-    for future in utils.futuresList:
+    for i, future in enumerate(utils.futuresList):
         # Slice data by futures
         df = pd.DataFrame({
-            'OPEN': OPEN[future],
-            'HIGH': HIGH[future],
-            'LOW': LOW[future],
-            'CLOSE': CLOSE[future],
-            'VOL': VOL[future],
+            'OPEN': OPEN[:, i],
+            'HIGH': HIGH[:, i],
+            'LOW': LOW[:, i],
+            'CLOSE': CLOSE[:, i],
+            'VOL': VOL[:, i],
         }, index=date_index)
         pass # Technical_indicators
         pass # Preprocessed features
@@ -178,7 +178,8 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     data['magnitude'] = magnitude
 
     # Futures strategy
-    position = data['prediction'].sample(axis='columns') # Stub: random sample
+    position = data['sign'].sample(axis='columns').squeeze() # Stub: random sample
+    position = position * (data['magnitude'][position.name] < 100).astype(int)
 
     # Cash-futures strategy
     cash_frac = 0.0
