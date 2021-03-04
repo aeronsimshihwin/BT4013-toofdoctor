@@ -7,6 +7,96 @@ import pandas as pd
 import strategy
 import utils
 
+def prepare_data(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
+    USA_HRS, USA_BOT, USA_BC, USA_BI, USA_CU, USA_CF, USA_CHJC, USA_CFNAI,\
+    USA_CP, USA_CCR, USA_CPI, USA_CCPI, USA_CINF, USA_DFMI, USA_DUR,\
+    USA_DURET, USA_EXPX, USA_EXVOL, USA_FRET, USA_FBI, USA_GBVL, USA_GPAY,\
+    USA_HI, USA_IMPX, USA_IMVOL, USA_IP, USA_IPMOM, USA_CPIC, USA_CPICM,\
+    USA_JBO, USA_LFPR, USA_LEI, USA_MPAY, USA_MP, USA_NAHB, USA_NLTTF,\
+    USA_NFIB, USA_NFP, USA_NMPMI, USA_NPP, USA_EMPST, USA_PHS, USA_PFED,\
+    USA_PP, USA_PPIC, USA_RSM, USA_RSY, USA_RSEA, USA_RFMI, USA_TVS, USA_UNR,\
+    USA_WINV, exposure, equity, settings):
+    """Returns a dict of dataframes that serves as the standardized data input for all models.
+    
+    Data specification
+    ------------------
+    Each DataFrame in the dict should correspond to a future or an economic indicator.
+    - ? x futures
+    - ? x economic indicators
+    
+    DataFrame specification
+    -----------------------
+    Each column corresponds to some time series associated with the future / economic indicator
+    - Index: datetime
+    - Columns: Price data type: OPEN / CLOSE/ technical indicator name / preprocessed feature name / etc.
+    """
+    date_index = pd.to_datetime(DATE, format='%Y%m%d')
+    data = dict()
+    
+    # Raw X data
+    # data.update({
+    #     'OPEN': pd.DataFrame(OPEN, index=date_index, columns=utils.futuresAllList),
+    #     'HIGH': pd.DataFrame(HIGH, index=date_index, columns=utils.futuresAllList),
+    #     'LOW': pd.DataFrame(LOW, index=date_index, columns=utils.futuresAllList),
+    #     'CLOSE': pd.DataFrame(CLOSE, index=date_index, columns=utils.futuresAllList),
+    #     'VOL': pd.DataFrame(VOL, index=date_index, columns=utils.futuresAllList),
+    # })
+    
+    # Pre-processed X data
+    for i, future in enumerate(utils.futuresList):
+        # Slice data by futures
+        df = pd.DataFrame({
+            'OPEN': OPEN[i],
+            'HIGH': HIGH[i],
+            'LOW': LOW[i],
+            'CLOSE': CLOSE[i],
+            'VOL': VOL[i],
+        }, index=date_index)
+        
+        # Technical_indicators
+        # df['technical_indicator_1'] = df['CLOSE'] - df['OPEN']
+        # df['technical_indicator_2'] = np.nan
+        # df['technical_indicator_3'] = np.nan
+
+        # Collate additional information for models
+        # df['categorical_preprocessing_1'] = np.nan
+        # df['arima_preprocessing_1'] = np.nan
+
+        data[future] = df
+    
+    # Economic indicators
+    keys = (
+        'USA_ADP, USA_EARN,\
+        USA_HRS, USA_BOT, USA_BC, USA_BI, USA_CU, USA_CF, USA_CHJC, USA_CFNAI,\
+        USA_CP, USA_CCR, USA_CPI, USA_CCPI, USA_CINF, USA_DFMI, USA_DUR,\
+        USA_DURET, USA_EXPX, USA_EXVOL, USA_FRET, USA_FBI, USA_GBVL, USA_GPAY,\
+        USA_HI, USA_IMPX, USA_IMVOL, USA_IP, USA_IPMOM, USA_CPIC, USA_CPICM,\
+        USA_JBO, USA_LFPR, USA_LEI, USA_MPAY, USA_MP, USA_NAHB, USA_NLTTF,\
+        USA_NFIB, USA_NFP, USA_NMPMI, USA_NPP, USA_EMPST, USA_PHS, USA_PFED,\
+        USA_PP, USA_PPIC, USA_RSM, USA_RSY, USA_RSEA, USA_RFMI, USA_TVS, USA_UNR,\
+        USA_WINV'
+    ).replace(' ', '').split(',')
+    vals = (
+        USA_ADP, USA_EARN,\
+        USA_HRS, USA_BOT, USA_BC, USA_BI, USA_CU, USA_CF, USA_CHJC, USA_CFNAI,\
+        USA_CP, USA_CCR, USA_CPI, USA_CCPI, USA_CINF, USA_DFMI, USA_DUR,\
+        USA_DURET, USA_EXPX, USA_EXVOL, USA_FRET, USA_FBI, USA_GBVL, USA_GPAY,\
+        USA_HI, USA_IMPX, USA_IMVOL, USA_IP, USA_IPMOM, USA_CPIC, USA_CPICM,\
+        USA_JBO, USA_LFPR, USA_LEI, USA_MPAY, USA_MP, USA_NAHB, USA_NLTTF,\
+        USA_NFIB, USA_NFP, USA_NMPMI, USA_NPP, USA_EMPST, USA_PHS, USA_PFED,\
+        USA_PP, USA_PPIC, USA_RSM, USA_RSY, USA_RSEA, USA_RFMI, USA_TVS, USA_UNR,\
+        USA_WINV,
+    )
+    for key, val in zip(keys, vals):
+        data[key] = pd.DataFrame(
+            data = val,
+            index = date_index,
+            columns = ['CLOSE'],
+        )
+    
+    return data
+    
+
 def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     USA_HRS, USA_BOT, USA_BC, USA_BI, USA_CU, USA_CF, USA_CHJC, USA_CFNAI,\
     USA_CP, USA_CCR, USA_CPI, USA_CCPI, USA_CINF, USA_DFMI, USA_DUR,\
