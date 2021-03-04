@@ -1,7 +1,9 @@
+from pathlib import Path
+import pickle
+
 import numpy as np
 import pandas as pd
 
-from models import categorical, numeric
 import strategy
 import utils
 
@@ -110,6 +112,7 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     date_index = pd.to_datetime(DATE, format='%Y%m%d')
     data = dict()
 
+<<<<<<< HEAD
     for i, future in enumerate(utils.futuresList):
         # Slice data by futures
         df = pd.DataFrame({
@@ -121,6 +124,28 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
         }, index=date_index)
         pass # Technical_indicators
         pass # Preprocessed features
+=======
+    # Raw X data (This is here in case of disaster)
+    # data.update({
+    #     'OPEN': pd.DataFrame(OPEN, index=date_index, columns=utils.futuresAllList),
+    #     'HIGH': pd.DataFrame(HIGH, index=date_index, columns=utils.futuresAllList),
+    #     'LOW': pd.DataFrame(LOW, index=date_index, columns=utils.futuresAllList),
+    #     'CLOSE': pd.DataFrame(CLOSE, index=date_index, columns=utils.futuresAllList),
+    #     'VOL': pd.DataFrame(VOL, index=date_index, columns=utils.futuresAllList),
+    # })
+
+    for future in utils.futuresList:
+        # Slice data by futures
+        df = pd.DataFrame({
+            'OPEN': OPEN[future],
+            'HIGH': HIGH[future],
+            'LOW': LOW[future],
+            'CLOSE': CLOSE[future],
+            'VOL': VOL[future],
+        }, index=date_index)
+        pass # Add technical_indicators as columns in each future dataframe
+        pass # Add preprocessed features as columns in each future dataframe
+>>>>>>> 989615462e0925a577d0b2c6014b5dd0726bd85c
         data[future] = df
 
     keys = (
@@ -153,6 +178,7 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
         )
     
     # Load saved models
+<<<<<<< HEAD
     models = dict()
     for (name, Model, args, kwargs, save_file) in categorical.models + numeric.models:
         models[name] = Model(*args, **kwargs)
@@ -180,13 +206,36 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     # Futures strategy
     position = data['sign'].sample(axis='columns').squeeze() # Stub: random sample
     position = position * (data['magnitude'][position.name] < 100).astype(int)
+=======
+    models = {}
+    for model_dir in Path('saved_models').rglob('*/*'):
+        if not model_dir.is_dir():
+            continue
+        *_, model_name = model_dir.parts
+        for future in utils.futuresList:
+            pickle_path = model_dir / f'{future}.p'
+            try:
+                with pickle_path.open('rb') as f:
+                    models[model_name, future] = pickle.load(f)
+            except:
+                raise FileNotFoundError(f'No saved {model_name} for {future}!')
+
+    # Fit and predict
+    prediction = pd.DataFrame(index=utils.futuresList)
+    for (name, future), model in models.items():
+        prediction.loc[future, name] = model.predict(data[future])
+    sign = utils.sign(prediction)
+    magnitude = utils.magnitude(prediction)
+    
+    # Futures strategy (Allocate position based on predictions)
+    position = data['prediction'].sample(axis='columns') # Stub: random sample
+>>>>>>> 989615462e0925a577d0b2c6014b5dd0726bd85c
 
     # Cash-futures strategy
     cash_frac = 0.0
     weights = np.array([cash_frac, *position]) # Stub: ignore cash
 
     # Yay!
-    print('Another day passes...')
     return weights, settings
 
 
