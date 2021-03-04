@@ -112,19 +112,6 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     date_index = pd.to_datetime(DATE, format='%Y%m%d')
     data = dict()
 
-<<<<<<< HEAD
-    for i, future in enumerate(utils.futuresList):
-        # Slice data by futures
-        df = pd.DataFrame({
-            'OPEN': OPEN[:, i],
-            'HIGH': HIGH[:, i],
-            'LOW': LOW[:, i],
-            'CLOSE': CLOSE[:, i],
-            'VOL': VOL[:, i],
-        }, index=date_index)
-        pass # Technical_indicators
-        pass # Preprocessed features
-=======
     # Raw X data (This is here in case of disaster)
     # data.update({
     #     'OPEN': pd.DataFrame(OPEN, index=date_index, columns=utils.futuresAllList),
@@ -145,7 +132,6 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
         }, index=date_index)
         pass # Add technical_indicators as columns in each future dataframe
         pass # Add preprocessed features as columns in each future dataframe
->>>>>>> 989615462e0925a577d0b2c6014b5dd0726bd85c
         data[future] = df
 
     keys = (
@@ -178,35 +164,6 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
         )
     
     # Load saved models
-<<<<<<< HEAD
-    models = dict()
-    for (name, Model, args, kwargs, save_file) in categorical.models + numeric.models:
-        models[name] = Model(*args, **kwargs)
-        models[name].load(save_file)
-
-    # Fit and predict
-    prediction = pd.DataFrame(index=utils.futuresList)
-    sign = pd.DataFrame(index=utils.futuresList)
-    magnitude = pd.DataFrame(index=utils.futuresList)
-    
-    for name, model in models.items():
-        # Models choose which predictors to use in implementation
-        # Predictions in pd.Series with index = utils.futuresList
-        preds = model.fit_predict(data)
-
-        prediction[name] = preds
-        sign[name] = utils.sign(preds)
-        magnitude[name] = utils.magnitude(preds)
-
-    # Allow strategy stage to access all prediction in addition to raw data
-    data['prediction'] = prediction
-    data['sign'] = sign
-    data['magnitude'] = magnitude
-
-    # Futures strategy
-    position = data['sign'].sample(axis='columns').squeeze() # Stub: random sample
-    position = position * (data['magnitude'][position.name] < 100).astype(int)
-=======
     models = {}
     for model_dir in Path('saved_models').rglob('*/*'):
         if not model_dir.is_dir():
@@ -229,7 +186,6 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     
     # Futures strategy (Allocate position based on predictions)
     position = data['prediction'].sample(axis='columns') # Stub: random sample
->>>>>>> 989615462e0925a577d0b2c6014b5dd0726bd85c
 
     # Cash-futures strategy
     cash_frac = 0.0

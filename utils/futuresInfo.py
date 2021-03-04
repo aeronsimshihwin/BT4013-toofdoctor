@@ -10,3 +10,14 @@ futuresList = ['F_AD','F_BO','F_BP','F_C','F_CC','F_CD','F_CL','F_CT','F_DX','F_
 cashList = ['CASH']
 
 futuresAllList = cashList + futuresList
+
+def load_futures_data(data_dir='tickerData'):
+    """Simulates data passed to models in main.py"""
+    import pandas as pd
+    data = {}
+    for future in futuresList:
+        df = pd.read_csv(f'{data_dir}/{future}.txt')
+        df.columns = df.columns.str.strip()
+        df.index = pd.to_datetime(df['DATE'], format='%Y%m%d')
+        data[future] = df
+    return data
