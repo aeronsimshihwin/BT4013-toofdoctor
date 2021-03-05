@@ -3,7 +3,7 @@ import pmdarima as pm
 
 SAVED_DIR = 'saved_models/numeric/arima'
 
-class ArimaWrapper:
+class ArimaWrapper: 
     def __init__(self, model=None, y=None, X=None):
         self.model = model
         self.get_y = y # Extracts y from data[future]
