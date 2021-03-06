@@ -1,10 +1,48 @@
-from pathlib import Path
 import pickle
 
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
+from models.numeric import (
+    ArimaRaw, 
+    ArimaLinear, 
+    ArimaNoTrend, 
+    ArimaLinearNoTrend,
+)
+from strategy import (
+    basic_strategy, 
+    fixed_threshold_strategy, 
+    perc_threshold_strategy,
+    futures_only,
+    cash_and_futures,
+)
 import utils
+
+# Load saved models
+SAVED_MODELS = {
+    'arima': ArimaRaw,
+    # 'arimalinear': ArimaLinear,
+    # 'arimanotrend': ArimaNoTrend,
+    # 'arimalinearnotrend': ArimaLinearNoTrend,
+}
+
+LOADED_MODELS = {}
+for name, model in SAVED_MODELS.items():
+    for future in utils.futuresList:
+        pickle_path = f'{model.SAVED_DIR}/{future}.p'
+        try:
+            with open(pickle_path, 'rb') as f:
+                LOADED_MODELS[name, future] = pickle.load(f)
+        except:
+            raise FileNotFoundError(f'No saved {name} for {future}!')
+
+# Old model loading method
+# LOADED = {}
+# for name, model in SAVED.items():
+#     for future in utils.futuresList:
+#         LOADED[name, future] = model()
+#         LOADED[name, future].load(f'{future}.p')
 
 
 def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
@@ -17,12 +55,11 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     USA_PP, USA_PPIC, USA_RSM, USA_RSY, USA_RSEA, USA_RFMI, USA_TVS, USA_UNR,\
     USA_WINV, exposure, equity, settings):
     ''' This system uses trend following techniques to allocate capital into the desired equities'''
-
-    # Prepare standardized model input
+    # Load standardized data
     date_index = pd.to_datetime(DATE, format='%Y%m%d')
     data = dict()
 
-    # Raw X data (This is here in case of disaster)
+    # Raw data (This is here in case of disaster)
     # data.update({
     #     'OPEN': pd.DataFrame(OPEN, index=date_index, columns=utils.futuresAllList),
     #     'HIGH': pd.DataFrame(HIGH, index=date_index, columns=utils.futuresAllList),
@@ -31,19 +68,21 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     #     'VOL': pd.DataFrame(VOL, index=date_index, columns=utils.futuresAllList),
     # })
 
-    for future in utils.futuresList:
+    # Data + preprocessing and indicators
+    for i, future in enumerate(utils.futuresList):
         # Slice data by futures
         df = pd.DataFrame({
-            'OPEN': OPEN[future],
-            'HIGH': HIGH[future],
-            'LOW': LOW[future],
-            'CLOSE': CLOSE[future],
-            'VOL': VOL[future],
+            'OPEN': OPEN[:, i],
+            'HIGH': HIGH[:, i],
+            'LOW': LOW[:, i],
+            'CLOSE': CLOSE[:, i],
+            'VOL': VOL[:, i],
         }, index=date_index)
         pass # Add technical_indicators as columns in each future dataframe
         pass # Add preprocessed features as columns in each future dataframe
         data[future] = df
 
+    # Economic indicators
     keys = (
         'USA_ADP, USA_EARN,\
         USA_HRS, USA_BOT, USA_BC, USA_BI, USA_CU, USA_CF, USA_CHJC, USA_CFNAI,\
@@ -73,36 +112,26 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
             columns = ['CLOSE'],
         )
     
-    # Load saved models
-    models = {}
-    for model_dir in Path('saved_models').rglob('*/*'):
-        if not model_dir.is_dir():
-            continue
-        *_, model_name = model_dir.parts
-        for future in utils.futuresList:
-            pickle_path = model_dir / f'{future}.p'
-            try:
-                with pickle_path.open('rb') as f:
-                    models[model_name, future] = pickle.load(f)
-            except:
-                raise FileNotFoundError(f'No saved {model_name} for {future}!')
-
     # Fit and predict
     prediction = pd.DataFrame(index=utils.futuresList)
-    for (name, future), model in models.items():
+    for (name, future), model in tqdm(settings['models'].items()):
         prediction.loc[future, name] = model.predict(data, future)
     sign = utils.sign(prediction)
     magnitude = utils.magnitude(prediction)
     
     # Futures strategy (Allocate position based on predictions)
-    position = data['prediction'].sample(axis='columns') # Stub: random sample
-
+    model = prediction.columns[0] # Arbitrarily pick first model in case of multiple 
+    position = basic_strategy(sign[model], magnitude[model])
+    
     # Cash-futures strategy
-    cash_frac = 0.0
-    weights = np.array([cash_frac, *position]) # Stub: ignore cash
+    position = futures_only(position)
+
+    # Update persistent data across runs
+    settings['sign'].append(sign)
+    settings['magnitude'].append(magnitude)
 
     # Yay!
-    return weights, settings
+    return position, settings
 
 
 def mySettings():
@@ -114,6 +143,11 @@ def mySettings():
     settings['lookback']= 504
     settings['budget']= 10**6
     settings['slippage']= 0.05
+
+    # Stuff to persist
+    settings['models'] = LOADED_MODELS
+    settings['sign'] = []
+    settings['magnitude'] = []
 
     return settings
 
