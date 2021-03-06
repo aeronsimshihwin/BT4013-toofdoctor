@@ -138,8 +138,9 @@ def mySettings():
     ''' Define your trading system settings here '''
     settings= {}
     settings['markets']  = utils.futuresAllList
-    settings['beginInSample'] = '20190123'
-    settings['endInSample'] = '20210331'
+    windows_file = open('windows.txt','r')
+    inOutSampleDate = windows_file.readline()
+    inOutSampleDate = inOutSampleDate.split(", ")
     settings['lookback']= 504
     settings['budget']= 10**6
     settings['slippage']= 0.05
@@ -154,4 +155,20 @@ def mySettings():
 # Evaluate trading system defined in current file.
 if __name__ == '__main__':
     import quantiacsToolbox
-    results = quantiacsToolbox.runts(__file__)
+    windows = utils.generate_windows_from("20000101", "20201231", 3) # Generate list of in out sample dates
+    sharpe_val_lst = []
+    eval_date_lst = []
+    for window in windows:
+        with open('windows.txt', 'w') as filetowrite:
+            window_str = str(window)[1:-1]
+            print(window_str)
+            filetowrite.write(window_str)
+        results = quantiacsToolbox.runts(__file__, plotEquity=False)
+        sharpe = results["stats"]["sharpe"]
+        sharpe_val_lst.append(sharpe)
+        eval_date_lst.append(results["evalDate"])
+    
+    res = pd.DataFrame(windows, columns = ['Start', 'End'])
+    res['Sharpe'] = sharpe_val_lst
+    res["evalDate"] = eval_date_lst
+    print(res)
