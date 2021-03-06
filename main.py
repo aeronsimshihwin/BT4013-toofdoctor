@@ -10,6 +10,13 @@ from models.numeric import (
     ArimaNoTrend, 
     ArimaLinearNoTrend,
 )
+from strategy import (
+    basic_strategy, 
+    fixed_threshold_strategy, 
+    perc_threshold_strategy,
+    futures_only,
+    cash_and_futures,
+)
 import utils
 
 # Load saved models
@@ -113,18 +120,18 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     magnitude = utils.magnitude(prediction)
     
     # Futures strategy (Allocate position based on predictions)
-    position = prediction.sample(axis='columns').squeeze() # Stub: random sample
-
+    model = prediction.columns[0] # Arbitrarily pick first model in case of multiple 
+    position = basic_strategy(sign[model], magnitude[model])
+    
     # Cash-futures strategy
-    cash_frac = 0.0
-    weights = np.array([cash_frac, *position]) # Stub: ignore cash
+    position = futures_only(position)
 
     # Update persistent data across runs
     settings['sign'].append(sign)
     settings['magnitude'].append(magnitude)
 
     # Yay!
-    return weights, settings
+    return position, settings
 
 
 def mySettings():
