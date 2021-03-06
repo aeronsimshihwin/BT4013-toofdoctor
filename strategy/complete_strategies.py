@@ -5,7 +5,9 @@ def futures_only(futures_only_pos_vector):
     '''
     only invest in futures
     '''
-    return futures_only_pos_vector
+    cash_frac = 0.0
+    complete_pos_vector = np.array([cash_frac, *futures_only_pos_vector])
+    return complete_pos_vector
 
 def cash_and_futures(futures_only_pos_vector):
     '''
