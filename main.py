@@ -16,6 +16,7 @@ from strategy import (
     perc_threshold_strategy,
     futures_only,
     cash_and_futures,
+    strategies_eval
 )
 import utils
 
@@ -155,20 +156,5 @@ def mySettings():
 # Evaluate trading system defined in current file.
 if __name__ == '__main__':
     import quantiacsToolbox
-    windows = utils.generate_windows_from("20000101", "20201231", 3) # Generate list of in out sample dates
-    sharpe_val_lst = []
-    eval_date_lst = []
-    for window in windows:
-        with open('windows.txt', 'w') as filetowrite:
-            window_str = str(window)[1:-1]
-            print(window_str)
-            filetowrite.write(window_str)
-        results = quantiacsToolbox.runts(__file__, plotEquity=False)
-        sharpe = results["stats"]["sharpe"]
-        sharpe_val_lst.append(sharpe)
-        eval_date_lst.append(results["evalDate"])
-    
-    res = pd.DataFrame(windows, columns = ['Start', 'End'])
-    res['Sharpe'] = sharpe_val_lst
-    res["evalDate"] = eval_date_lst
-    print(res)
+    eval_res = strategies_eval.evaluate_by_sharpe(__file__, "20180101", "20201231", 12)
+    print(eval_res)
