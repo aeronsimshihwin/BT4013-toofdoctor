@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import pickle
 
-def save_model(txt_path, metric, model, X_train, y_train):
+def save_model(txt_path, metric, model, X_train, y_train, ext_path="txt"):
     '''
     Function that takes in model metrics txt path, 
     selects the best model parameters based on a metric,
@@ -20,7 +20,7 @@ def save_model(txt_path, metric, model, X_train, y_train):
     None
     '''
     # convert metrics txt file to pd.DataFrame
-    metrics_df = pd.read_csv(f'model_metrics/categorical/{txt_path}.txt')
+    metrics_df = pd.read_csv(f'model_metrics/categorical/{txt_path}.{ext_path}')
 
     # set objective based on input metric
     if metric[:8] == 'opp_cost':
