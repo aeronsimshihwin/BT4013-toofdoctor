@@ -3,7 +3,6 @@ import pandas as pd
 import math
 
 import utils
-from model_validation import walk_forward
 
 SAVED_DIR = "/saved_models/categorical/fourCandleHammer"
 
@@ -27,8 +26,8 @@ class fourCandleHammerWrapper:
             close_ex5days = close[-24:-4]
             close_last5days = close[-5:]
             
-            EMA13 = EMA(pd.Series(close), 13)
-            EMA26 = EMA(pd.Series(close), 26)
+            EMA13 = utils.EMA(pd.Series(close), 13)
+            EMA26 = utils.EMA(pd.Series(close), 26)
 
             twentyDayNewHigh = close_ex5days[-1] >= 0.95 * max(close_ex5days)
             twentyDayNewLow = close_ex5days[-1] <= 1.05 * min(close_ex5days)

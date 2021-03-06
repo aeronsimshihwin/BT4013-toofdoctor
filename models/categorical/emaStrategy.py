@@ -3,7 +3,6 @@ import pandas as pd
 import math
 
 import utils
-from model_validation import walk_forward
 
 SAVED_DIR = "/saved_models/categorical/emaStrategy"
 
@@ -24,15 +23,15 @@ class emaStrategyWrapper:
         if future in data:
             close = data['CLOSE']
             
-            EMA20 = EMA(pd.Series(close), 20)
-            EMA50 = EMA(pd.Series(close), 50)
+            EMA20 = utils.EMA(pd.Series(close), 20)
+            EMA50 = utils.EMA(pd.Series(close), 50)
             
             crossover_time_index = -1
             retest_time_index_start = -1
             retest_time_index_end = -1
             num_retests = 0
 
-            if (gradient(EMA20) > 0) and (gradient(EMA50) > 0): # Uptrend
+            if (utils.gradient(EMA20) > 0) and (utils.gradient(EMA50) > 0): # Uptrend
                 for i in range(len(EMA20)-1, 0, -1):
                     if (EMA20[i] > EMA50[i]) and (EMA20[i-1] <= EMA50[i-1]): # EMA20 crosses EMA50
                         crossover_time_index = i
@@ -55,7 +54,7 @@ class emaStrategyWrapper:
                                     retested = False
                         if len(close) - retest_time_index_end <= 3: y_diff = 1 # If the last retest was within 3 days, it signals a BUY.
                     
-            elif (gradient(EMA20) < 0) and (gradient(EMA50) < 0): # downtrend
+            elif (utils.gradient(EMA20) < 0) and (utils.gradient(EMA50) < 0): # downtrend
                 for i in range(len(EMA20)-1, 0, -1):
                     if (EMA20[i] <= EMA50[i]) and (EMA20[i-1] > EMA50[i-1]): # EMA50 crosses EMA20
                         crossover_time_index = i

@@ -3,7 +3,6 @@ import pandas as pd
 import math
 
 import utils
-from model_validation import walk_forward
 
 SAVED_DIR = "/saved_models/categorical/swingSetup"
 
@@ -25,11 +24,11 @@ class swingSetupWrapper:
             high = data['HIGH']
             low = data['LOW']
 
-            SMA20 = SMA(pd.Series(close), 20)
-            SMA40 = SMA(pd.Series(close), 40)
-            CCI_indicator = CCI(pd.Series(high), pd.Series(low), pd.Series(close), 20)
+            SMA20 = utils.SMA(pd.Series(close), 20)
+            SMA40 = utils.SMA(pd.Series(close), 40)
+            CCI_indicator = utils.CCI(pd.Series(high), pd.Series(low), pd.Series(close), 20)
             setup_time_index = -1
-            if (gradient(SMA20) > 0 and gradient(SMA40) > 0): # Sloping up MAs
+            if (utils.gradient(SMA20) > 0 and utils.gradient(SMA40) > 0): # Sloping up MAs
                 for i in range(len(SMA20)-2, len(SMA20)-7, -1):
                     if (SMA20[i] > SMA40[i]): # SMA20 above SMA40
                         if (CCI_indicator[i] < -100): # CCI < -100, indicates price below avg
@@ -38,7 +37,7 @@ class swingSetupWrapper:
                                     trigger_price = high[i] * 1.002
                                     if low[-1] >= trigger_price:
                                         y_diff = 1
-            elif (gradient(SMA20) < 0 and gradient(SMA40) < 0): # Sloping down MAs
+            elif (utils.gradient(SMA20) < 0 and utils.gradient(SMA40) < 0): # Sloping down MAs
                 for i in range(len(SMA20)-2, len(SMA20)-7, -1):
                     if (SMA20[i] < SMA40[i]): # SMA20 below SMA40
                         if (CCI_indicator[i] > 100): # CCI < -100, indicates price above avg
