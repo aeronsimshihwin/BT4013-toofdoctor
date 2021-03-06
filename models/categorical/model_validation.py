@@ -1,4 +1,5 @@
 import utils
+import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score
 from itertools import repeat
@@ -93,18 +94,21 @@ def walk_forward(
     metrics = ["accuracy", "opp_cost"]
     results = pd.DataFrame(index=windows.index, columns=metrics)
     for i in windows.index:
-        train_mask = (windows.loc[i, 'train_start'] >= X.index) & (X.index < windows.loc[i, 'train_end'])
-        val_mask = (windows.loc[i, 'validation_start'] >= X.index) & (X.index < windows.loc[i, 'validation_end'])
-        X_train, X_val = X.loc[train_mask].to_numpy(), X.loc[val_mask].to_numpy()
-        y_train, y_val = y.loc[train_mask].to_numpy(), y.loc[val_mask].to_numpy()
-        cost_val = cost_weight.loc[val_mask].to_numpy()
+        try:
+            train_mask = (windows.loc[i, 'train_start'] >= X.index) & (X.index < windows.loc[i, 'train_end'])
+            val_mask = (windows.loc[i, 'validation_start'] >= X.index) & (X.index < windows.loc[i, 'validation_end'])
+            X_train, X_val = X.loc[train_mask].to_numpy(), X.loc[val_mask].to_numpy()
+            y_train, y_val = y.loc[train_mask].to_numpy(), y.loc[val_mask].to_numpy()
+            cost_val = cost_weight.loc[val_mask].to_numpy()
 
-        fitted = model.fit(X_train, y_train)
-        y_pred = fitted.predict(X_val)
+            fitted = model.fit(X_train, y_train)
+            y_pred = fitted.predict(X_val)
 
-        results.loc[i, "accuracy"] = accuracy_score(pd.Series(y_val), pd.Series(y_pred))
-        results.loc[i, "opp_cost"] = utils.opportunity_cost(pd.Series(y_val), pd.Series(y_pred), pd.Series(cost_val))
-
+            results.loc[i, "accuracy"] = accuracy_score(pd.Series(y_val), pd.Series(y_pred))
+            results.loc[i, "opp_cost"] = utils.opportunity_cost(pd.Series(y_val), pd.Series(y_pred), pd.Series(cost_val))
+        except:
+            results.loc[i, "accuracy"] = np.nan
+            results.loc[i, "opp_cost"] = np.nan
     # Combine windows with metric results
     win_results = pd.concat([windows, results], axis=1)
 
