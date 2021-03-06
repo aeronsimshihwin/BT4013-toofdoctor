@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from ta.trend import SMAIndicator, EMAIndicator, MACD
+from ta.trend import SMAIndicator, EMAIndicator, MACD, CCIIndicator
 from ta.volatility import BollingerBands, AverageTrueRange
 from ta.momentum import RSIIndicator
 from ta.volume import VolumePriceTrendIndicator
@@ -88,3 +88,15 @@ def BBands(close, periods):
   BBands_high = BollingerBands(close, periods).bollinger_hband_indicator().tolist()
   BBands_low = BollingerBands(close, periods).bollinger_lband_indicator().tolist()
   return (BBands_high, BBands_low)
+
+def CCI(high, low, close, periods=20):
+  """
+  @param: high A series object containing high prices.
+  @param: low A series object containing low prices.
+  @param: close A series object containing closing prices.
+  @param: periods An integer for the number of periods to average over.
+  Returns a list of differences between price change and average price change.
+  Function reference: https://technical-analysis-library-in-python.readthedocs.io/en/latest/ta.html#ta.trend.CCIIndicator
+  Info: https://www.tradingtechnologies.com/xtrader-help/x-study/technical-indicator-definitions/commodity-channel-index-cci/
+  """
+  return CCIIndicator(high, low, close, periods).cci().tolist()
