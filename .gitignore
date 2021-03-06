@@ -4,6 +4,8 @@
 # Caching
 __pycache__/
 .ipynb_checkpoints/
+.DS_Store
+saved_models/.DS_Store
 
 # Data files
 tickerData/
