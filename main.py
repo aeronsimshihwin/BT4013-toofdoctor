@@ -12,6 +12,8 @@ from models.numeric import (
 )
 from strategy import (
     basic_strategy, 
+    long_only,
+    short_only,
     fixed_threshold_strategy, 
     perc_threshold_strategy,
     futures_only,
@@ -21,10 +23,10 @@ import utils
 
 # Load saved models
 SAVED_MODELS = {
-    'arima': ArimaRaw,
+    # 'arima': ArimaRaw,
     # 'arimalinear': ArimaLinear,
     # 'arimanotrend': ArimaNoTrend,
-    # 'arimalinearnotrend': ArimaLinearNoTrend,
+    'arimalinearnotrend': ArimaLinearNoTrend,
 }
 
 LOADED_MODELS = {}
@@ -121,7 +123,7 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     
     # Futures strategy (Allocate position based on predictions)
     model = prediction.columns[0] # Arbitrarily pick first model in case of multiple 
-    position = basic_strategy(sign[model], magnitude[model])
+    position = long_only(sign[model], magnitude[model])
     
     # Cash-futures strategy
     position = futures_only(position)
