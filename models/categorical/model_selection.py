@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import pickle
 
-def save_model(txt_path, metric, model, X_train, y_train, ext_path="txt"):
+def save_model(txt_path, metric, model, model_wrapper, X_train, y_train, ext_path="txt"):
     '''
     Function that takes in model metrics txt path, 
     selects the best model parameters based on a metric,
@@ -39,8 +39,9 @@ def save_model(txt_path, metric, model, X_train, y_train, ext_path="txt"):
     # train model using optimal parameters
     model = model(**params_dict)
     fitted = model.fit(X_train, y_train)
+    save = model_wrapper(model=fitted)
 
     with open(f'saved_models/categorical/{txt_path}.p', 'wb') as f:
-        pickle.dump(fitted, f)
+        pickle.dump(save, f)
 
-    return fitted
+    return save
