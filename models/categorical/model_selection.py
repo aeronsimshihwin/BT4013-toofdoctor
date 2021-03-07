@@ -41,6 +41,6 @@ def save_model(txt_path, metric, model, X_train, y_train, ext_path="txt"):
     fitted = model.fit(X_train, y_train)
 
     with open(f'saved_models/categorical/{txt_path}.p', 'wb') as f:
-        pickle.dump(model, f)
+        pickle.dump(fitted, f)
 
     return fitted
