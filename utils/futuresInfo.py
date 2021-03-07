@@ -9,7 +9,7 @@ futuresList = ['F_AD','F_BO','F_BP','F_C','F_CC','F_CD','F_CL','F_CT','F_DX','F_
 
 cashList = ['CASH']
 
-futuresAllList = cashList + futuresList
+futuresAllList = futuresList + cashList
 
 def load_futures_data(data_dir='tickerData'):
     """Simulates data passed to models in main.py"""
