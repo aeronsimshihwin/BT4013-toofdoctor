@@ -4,6 +4,10 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+from models.categorical import (
+    XGBWrapper,
+    RFWrapper
+)
 from models.numeric import (
     ArimaRaw, 
     ArimaLinear, 
@@ -18,6 +22,7 @@ from strategy import (
     perc_threshold_strategy,
     futures_only,
     cash_and_futures,
+    strategies_eval
 )
 import utils
 
@@ -160,4 +165,4 @@ def mySettings():
 # Evaluate trading system defined in current file.
 if __name__ == '__main__':
     import quantiacsToolbox
-    results = quantiacsToolbox.runts(__file__)
+    quantiacsToolbox.runts(__file__)
