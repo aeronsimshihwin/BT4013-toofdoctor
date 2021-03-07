@@ -16,6 +16,7 @@ from strategy import (
     perc_threshold_strategy,
     futures_only,
     cash_and_futures,
+    strategies_eval
 )
 import utils
 
@@ -138,8 +139,9 @@ def mySettings():
     ''' Define your trading system settings here '''
     settings= {}
     settings['markets']  = utils.futuresAllList
-    settings['beginInSample'] = '20190123'
-    settings['endInSample'] = '20210331'
+    windows_file = open('windows.txt','r')
+    inOutSampleDate = windows_file.readline()
+    inOutSampleDate = inOutSampleDate.split(", ")
     settings['lookback']= 504
     settings['budget']= 10**6
     settings['slippage']= 0.05
@@ -154,4 +156,5 @@ def mySettings():
 # Evaluate trading system defined in current file.
 if __name__ == '__main__':
     import quantiacsToolbox
-    results = quantiacsToolbox.runts(__file__)
+    eval_res = strategies_eval.evaluate_by_sharpe(__file__, "20180101", "20201231", 12)
+    print(eval_res)
