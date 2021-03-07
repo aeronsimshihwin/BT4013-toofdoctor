@@ -4,6 +4,10 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+from models.categorical import (
+    XGBWrapper,
+    RFWrapper
+)
 from models.numeric import (
     ArimaRaw, 
     ArimaLinear, 
@@ -21,7 +25,9 @@ import utils
 
 # Load saved models
 SAVED_MODELS = {
-    'arima': ArimaRaw,
+    # 'rf': RFWrapper,
+    'xgb': XGBWrapper,
+    # 'arima': ArimaRaw,
     # 'arimalinear': ArimaLinear,
     # 'arimanotrend': ArimaNoTrend,
     # 'arimalinearnotrend': ArimaLinearNoTrend,
@@ -72,7 +78,7 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     for i, future in enumerate(utils.futuresList):
         # Slice data by futures
         df = pd.DataFrame({
-            'OPEN': OPEN[:, i],
+            'OPEN': OPEN[:, i], 
             'HIGH': HIGH[:, i],
             'LOW': LOW[:, i],
             'CLOSE': CLOSE[:, i],
