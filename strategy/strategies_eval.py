@@ -1,3 +1,5 @@
+import os
+
 import quantiacsToolbox
 import pandas as pd
 import utils
@@ -15,6 +17,8 @@ def evaluate_by_sharpe(fl, start_date, end_date, interval):
         sharpe_val_lst.append(sharpe)
         eval_date_lst.append(results["evalDate"])
     
+    os.remove('windows.txt')
+
     res = pd.DataFrame(windows, columns = ['Start', 'End'])
     res['Sharpe'] = sharpe_val_lst
     res["evalDate"] = eval_date_lst
