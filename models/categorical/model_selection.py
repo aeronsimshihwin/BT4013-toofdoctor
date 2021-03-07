@@ -2,6 +2,7 @@ import utils
 import pandas as pd
 import numpy as np
 import pickle
+import math
 
 def save_model(txt_path, metric, model, X_train, y_train, ext_path="txt"):
     '''
@@ -34,6 +35,8 @@ def save_model(txt_path, metric, model, X_train, y_train, ext_path="txt"):
     params_dict = {}
     for col in metrics_df.columns:
         if col[:8] != 'opp_cost' and col[:8] != 'accuracy':
+            if isinstance(best_metric[col][0], float) and math.isnan(best_metric[col][0]):
+                continue
             params_dict[col] = best_metric[col][0]
     
     # train model using optimal parameters
@@ -41,6 +44,6 @@ def save_model(txt_path, metric, model, X_train, y_train, ext_path="txt"):
     fitted = model.fit(X_train, y_train)
 
     with open(f'saved_models/categorical/{txt_path}.p', 'wb') as f:
-        pickle.dump(model, f)
+        pickle.dump(fitted, f)
 
     return fitted
