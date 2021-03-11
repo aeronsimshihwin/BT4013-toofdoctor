@@ -4,16 +4,12 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-# from models.categorical import (
-#     XGBWrapper,
-#     RFWrapper
-# )
+from models.categorical import (
+    XGBWrapper,
+    RFWrapper
+)
 from models.numeric import (
     Arima,
-    ArimaRaw, 
-    ArimaLinear, 
-    ArimaNoTrend, 
-    ArimaLinearNoTrend,
 )
 from strategy import (
     basic_strategy, 
@@ -26,13 +22,11 @@ from strategy import (
     strategies_eval
 )
 import utils
-from utils.pre_processing import (
-    linearize,
-    detrend,
-)
 
 # Load saved models
 SAVED_MODELS = {
+    # 'rf': RFWrapper,
+    # 'xgb': XGBWrapper,
     'arima': Arima,
 }
 
@@ -62,15 +56,6 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     date_index = pd.to_datetime(DATE, format='%Y%m%d')
     data = dict()
 
-    # Raw data (This is here in case of disaster)
-    # data.update({
-    #     'OPEN': pd.DataFrame(OPEN, index=date_index, columns=utils.futuresAllList),
-    #     'HIGH': pd.DataFrame(HIGH, index=date_index, columns=utils.futuresAllList),
-    #     'LOW': pd.DataFrame(LOW, index=date_index, columns=utils.futuresAllList),
-    #     'CLOSE': pd.DataFrame(CLOSE, index=date_index, columns=utils.futuresAllList),
-    #     'VOL': pd.DataFrame(VOL, index=date_index, columns=utils.futuresAllList),
-    # })
-
     # Data + preprocessing and indicators
     for i, future in enumerate(utils.futuresList):
         # Slice data by futures
@@ -83,9 +68,9 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
         }, index=date_index)
         
         # ARIMA: Velocity and acceleration terms for linearized data
-        df = linearize(df, old_var='CLOSE', new_var='CLOSE_LINEAR')
-        df = detrend(df, old_var='CLOSE_LINEAR', new_var='CLOSE_VELOCITY')
-        df = detrend(df, old_var='CLOSE_VELOCITY', new_var='CLOSE_ACCELERATION')
+        df = utils.linearize(df, old_var='CLOSE', new_var='CLOSE_LINEAR')
+        df = utils.detrend(df, old_var='CLOSE_LINEAR', new_var='CLOSE_VELOCITY')
+        df = utils.detrend(df, old_var='CLOSE_VELOCITY', new_var='CLOSE_ACCELERATION')
         
         pass # Add technical_indicators as columns in each future dataframe
         pass # Add preprocessed features as columns in each future dataframe
