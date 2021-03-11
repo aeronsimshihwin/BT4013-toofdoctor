@@ -4,6 +4,23 @@ import pandas as pd
 from pandas.tseries.offsets import DateOffset
 from typing import Callable, Mapping
 
+def linearize(data: pd.DataFrame, old_var: str, new_var: str):
+    data[new_var] = np.log(data[old_var])
+    return data
+
+def detrend(data: pd.DataFrame, old_var: str, new_var: str):
+    data[new_var] = data[old_var].diff().fillna(0)
+    return data
+
+def add_stationary(data: pd.DataFrame, old_col, new_col):
+    """Adds stationary close prices to the standardized dataset"""
+    var = data[old_col]
+    var = np.log(var) # Linearize
+    var = var.diff() # Detrend      
+    var = var.fillna(0)
+    data[new_col] = var
+    return data
+
 def perc_change(var: pd.Series, periods:int=1, shift:int=1, offset:bool=False):
     if offset:
         return var.pct_change(periods=periods).shift(shift, freq=DateOffset(days=1))
