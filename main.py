@@ -4,11 +4,12 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from models.categorical import (
-    XGBWrapper,
-    RFWrapper
-)
+# from models.categorical import (
+#     XGBWrapper,
+#     RFWrapper
+# )
 from models.numeric import (
+    Arima,
     ArimaRaw, 
     ArimaLinear, 
     ArimaNoTrend, 
@@ -25,17 +26,19 @@ from strategy import (
     strategies_eval
 )
 import utils
+from utils.pre_processing import (
+    linearize,
+    detrend,
+)
 
 # Load saved models
 SAVED_MODELS = {
-    # 'arima': ArimaRaw,
-    # 'arimalinear': ArimaLinear,
-    # 'arimanotrend': ArimaNoTrend,
-    'arimalinearnotrend': ArimaLinearNoTrend,
+    'arima': Arima,
 }
 
 LOADED_MODELS = {}
 for name, model in SAVED_MODELS.items():
+    print(f'loading {name} from {model.SAVED_DIR}...')
     for future in utils.futuresList:
         pickle_path = f'{model.SAVED_DIR}/{future}.p'
         try:
@@ -43,13 +46,6 @@ for name, model in SAVED_MODELS.items():
                 LOADED_MODELS[name, future] = pickle.load(f)
         except:
             raise FileNotFoundError(f'No saved {name} for {future}!')
-
-# Old model loading method
-# LOADED = {}
-# for name, model in SAVED.items():
-#     for future in utils.futuresList:
-#         LOADED[name, future] = model()
-#         LOADED[name, future].load(f'{future}.p')
 
 
 def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
@@ -85,8 +81,15 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
             'CLOSE': CLOSE[:, i],
             'VOL': VOL[:, i],
         }, index=date_index)
+        
+        # ARIMA: Velocity and acceleration terms for linearized data
+        df = linearize(df, old_var='CLOSE', new_var='CLOSE_LINEAR')
+        df = detrend(df, old_var='CLOSE_LINEAR', new_var='CLOSE_VELOCITY')
+        df = detrend(df, old_var='CLOSE_VELOCITY', new_var='CLOSE_ACCELERATION')
+        
         pass # Add technical_indicators as columns in each future dataframe
         pass # Add preprocessed features as columns in each future dataframe
+        
         data[future] = df
 
     # Economic indicators
@@ -127,9 +130,11 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     magnitude = utils.magnitude(prediction)
     
     # Futures strategy (Allocate position based on predictions)
-    model = prediction.columns[0] # Arbitrarily pick first model in case of multiple 
-    position = long_only(sign[model], magnitude[model])
-    
+    model = prediction.columns[0] # Arbitrarily pick first model in case of multiple
+    position = basic_strategy(sign[model], magnitude[model]) 
+    # position = long_only(sign[model], magnitude[model]) 
+    # position = short_only(sign[model], magnitude[model]) 
+        
     # Cash-futures strategy
     position = futures_only(position)
 
