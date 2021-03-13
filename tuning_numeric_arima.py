@@ -6,6 +6,7 @@ What this does
 3. Saves predictions made by each model
 (4. Hopefully does all this more quickly using multiprocessing)
 """
+from datetime import datetime
 from pathlib import Path
 import pickle
 import warnings
@@ -26,7 +27,10 @@ def load_and_preprocess_data():
         data[future] = utils.detrend(data[future], old_var='CLOSE_VELOCITY', new_var='CLOSE_ACCELERATION')
     return data
 
-def fit_model(candidate, data, future, force=False):
+def fit_model(args):
+    # Lousy hack for multiprocessing.Pool.imap_unordered
+    candidate, data, future, force = args
+    
     # Load model
     try:
         if force:
@@ -37,15 +41,26 @@ def fit_model(candidate, data, future, force=False):
     # Or fit a new model if it doesn't exist
     except:
         model = Arima(y_var=candidate.y_var)
+        train = {
+            future: df[df.index < datetime(2021, 1, 1)] # Exclude test data
+            for future, df in data.items()
+        }
         model.fit(
-            data, future,
-            1, 1, 1,
-            4, 2, 16,
+            train, future,
+            start_p=1, start_d=1, start_q=1,
+            max_p=4, max_d=2, max_q=16,
             seasonal = False,
             suppress_warnings = True,
             error_action = 'ignore',
         )
-        model.model.fit([0, 0, 0]) # Drop endog array before saving
+
+        # Try shrink endog array before saving
+        for n in (2, 5, 10, 15, 20):
+            try:
+                model.model.fit(n*[0])
+                break
+            except:
+                continue
 
     # Save the model
     for forecast in ('price', 'returns', 'percent'):    
@@ -74,10 +89,14 @@ def load_models(candidates):
     models = pd.DataFrame.from_records(records)
     models = models.set_index(['model', 'forecast', 'future'])
     models['name'] = models['arima'].apply(lambda x: str(x.model))
+    models = models.sort_index()
     return models
 
-def predict_future(model, data, future, force=False):
-    root = Path('model_predictions/numeric/arima')
+def predict_future(args):
+    # Lousy hack for multiprocessing.Pool.imap_unordered
+    model, data, future, force = args
+    
+    root = Path(f'model_predictions/numeric/arima/{model.y_var}')
     root.mkdir(parents=True, exist_ok=True)
     p = root / f'{future}.csv'
     try:
@@ -87,7 +106,8 @@ def predict_future(model, data, future, force=False):
     except:
         windows, y_preds = walk_forward(
             model = model,
-            data = data[future]['CLOSE_LINEAR'],
+            data = data,
+            future = future,
             progress_bar = True,
         )
         y_preds.to_csv(p)
@@ -95,7 +115,7 @@ def predict_future(model, data, future, force=False):
 if __name__ == '__main__':
     import argparse
     from multiprocessing import Pool, cpu_count
-
+    
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--force-fit', action='store_true', help='Overwrites existing models if they exist')
     parser.add_argument('--force-predict', action='store_true', help='Overwrites existing predictions if they exist')
@@ -115,22 +135,29 @@ if __name__ == '__main__':
     data = load_and_preprocess_data()
 
     print('Fitting models')
+    np.seterr(all='warn') # Allow numpy warnings to be handled
     with Pool(processes=num_cores) as pool:
         args = [
             (candidate, data, future, flags.force_fit) 
             for candidate in candidates 
             for future in data
         ]
-        pool.starmap(fit_model, tqdm(args, position=0))
-
+        progress = pool.imap_unordered(fit_model, args) # Iterator of results
+        for _ in tqdm(progress, total=len(args), position=0):
+            pass
+    
     print('Loading models...')
     models = load_models(candidates)
 
     print('Model predictions...')
+    np.seterr(all='warn') # Allow numpy warnings to be handled
     with Pool(processes=num_cores) as pool:
-        arima = models['arima']
         args = [
-            (arima['CLOSE_LINEAR', 'price', future].model, data, future, flags.force_predict) 
+            (models['arima'][y_var, 'price'][future], data, future, flags.force_predict)
+            for y_var in ('CLOSE_LINEAR', 'CLOSE_VELOCITY', 'CLOSE_ACCELERATION')
             for future in data
         ]
-        pool.starmap(predict_future, tqdm(args, position=0))
+        progress = pool.imap_unordered(predict_future, args) # Iterator of results
+        for _ in tqdm(progress, total=len(args), position=0):
+            pass
+    

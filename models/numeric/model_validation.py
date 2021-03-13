@@ -1,3 +1,4 @@
+from typing import Mapping
 import numpy as np
 import pandas as pd
 
@@ -11,12 +12,14 @@ def window_generator(data, train_size, val_size):
 
 def walk_forward(
     model,
-    data: pd.Series,
+    data: Mapping[str, pd.DataFrame],
+    future: str,
     train_size: int = 504,
     val_size: int = 1,
     progress_bar: str = None,
 ):
     """Runs a walk forward validation to generate model predictions"""
+    data = data[future][model.y_var]
     if len(data) < train_size + val_size:
         raise ValueError('Insufficient data for a single train-val pass')
     
@@ -25,11 +28,11 @@ def walk_forward(
         if progress_bar == 'notebook':
             from tqdm.notebook import tqdm
             num_windows = (len(data) - train_size) // val_size
-            loop = tqdm(loop, total=num_windows, leave=False)
+            loop = tqdm(loop, total=num_windows, leave=False, position=1)
         else:
             from tqdm import tqdm
             num_windows = (len(data) - train_size) // val_size
-            loop = tqdm(loop, total=num_windows, leave=False)
+            loop = tqdm(loop, total=num_windows, leave=False, position=1)
     except:
         pass
     
@@ -44,8 +47,8 @@ def walk_forward(
         })
         
         try:
-            model.fit(train_window)
-            y_preds[val_window.index] = model.predict(len(val_window))
+            model.model.fit(train_window)
+            y_preds[val_window.index] = model.model.predict(len(val_window))
         except:
             y_preds[val_window.index] = np.array([np.nan]*len(val_window))
     

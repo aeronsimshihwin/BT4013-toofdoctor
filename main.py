@@ -27,7 +27,7 @@ import utils
 SAVED_MODELS = {
     # 'rf': RFWrapper,
     # 'xgb': XGBWrapper,
-    'arima': Arima,
+    'arima': Arima('CLOSE_LINEAR', forecast='returns'),
 }
 
 LOADED_MODELS = {}
