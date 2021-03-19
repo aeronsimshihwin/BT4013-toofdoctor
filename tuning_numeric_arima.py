@@ -4,7 +4,7 @@ What this does
 1. Fits models on training data
 2. Simulates a runts backtest over the entire dataset
 3. Saves predictions made by each model
-(4. Hopefully does all this more quickly using multiprocessing)
+4. Does all this more quickly using multiprocessing . ^ .
 """
 from datetime import datetime
 from pathlib import Path
@@ -49,7 +49,7 @@ def fit_model(args):
             train, future,
             start_p=1, start_d=1, start_q=1,
             max_p=4, max_d=2, max_q=16,
-            seasonal = False,
+            # seasonal = False,
             suppress_warnings = True,
             error_action = 'ignore',
         )
