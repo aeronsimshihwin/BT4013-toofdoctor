@@ -6,7 +6,10 @@ from tqdm import tqdm
 
 from models.categorical import (
     XGBWrapper,
-    RFWrapper
+    RFWrapper,
+    LogRegWrapper, 
+    SVMWrapper,
+    DummyWrapper
 )
 from models.numeric import (
     ArimaRaw, 
@@ -27,7 +30,10 @@ import utils
 # Load saved models
 SAVED_MODELS = {
     # 'rf': RFWrapper,
-    'xgb': XGBWrapper,
+    # 'xgb': XGBWrapper,
+    'logreg': LogRegWrapper,
+    # 'svm': SVMWrapper,
+    # 'dummy': DummyWrapper,
     # 'arima': ArimaRaw,
     # 'arimalinear': ArimaLinear,
     # 'arimanotrend': ArimaNoTrend,
@@ -145,8 +151,8 @@ def mySettings():
     ''' Define your trading system settings here '''
     settings= {}
     settings['markets']  = utils.futuresAllList
-    settings['beginInSample'] = '20190123'
-    settings['endInSample'] = '20210331'
+    settings['beginInSample'] = '20180920' # '20190123'
+    settings['endInSample'] = '20201231' # '20210331'
     settings['lookback']= 504
     settings['budget']= 10**6
     settings['slippage']= 0.05
