@@ -1,3 +1,8 @@
+from models.categorical import (
+    XGBWrapper,
+    RFWrapper
+)
+
 from models.numeric import (
     ArimaRaw, 
     ArimaLinear, 
@@ -32,6 +37,7 @@ def mySettings():
 
 # Evaluate trading system defined in current file.
 if __name__ == '__main__':
-    eval_res = strategies_eval.evaluate_by_sharpe(__file__, "19900101", "20201231", 27) # 2 years train 3 months val
+    # eval_res = strategies_eval.evaluate_by_sharpe(__file__, "19900101", "20201231", 27) # 2 years train 3 months val
+    eval_res = strategies_eval.evaluate_by_sharpe(__file__, "20180101", "20201231", 27)
     eval_res.to_csv('model_metrics/ihopethesharpeishigh.csv')
     print(eval_res)

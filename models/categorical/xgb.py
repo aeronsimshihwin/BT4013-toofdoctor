@@ -43,12 +43,19 @@ class XGBWrapper:
         return y, X
 
     def _fit(self, y, X, **kwargs):
-        if self.model is None:
-            model = XGBClassifier(**kwargs)
-            fitted = model.fit(X, y)
-            self.model = fitted
+        # model = XGBClassifier()
+        model = XGBClassifier(booster='gbtree', gamma=0, learning_rate=0.3, max_depth=9, n_estimators=100)
+        X_train = np.delete(X, len(X)-1, 0)
+        y_train = np.delete(y, len(y)-1, 0)
+        fitted = model.fit(X_train, y_train)
+        self.model = fitted
+        # if self.model is None:
+        #     model = XGBClassifier(**kwargs)
+        #     fitted = model.fit(X, y)
+        #     self.model = fitted
     
     def _predict(self, y, X, **kwargs):
+        self._fit(y, X, **kwargs)
         X_test = X[-1]
         y_pred = self.model.predict_proba(X_test.reshape(1, -1)) # returns [P(-1), P(1)]
         y_pred_pos = y_pred[0][1] # return probability of class 1

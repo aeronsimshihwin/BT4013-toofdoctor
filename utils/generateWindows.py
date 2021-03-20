@@ -20,7 +20,8 @@ def generate_windows_from(start_date, stop_date, interval):
 
     while end <= stop:
         res.append((start.strftime('%Y%m%d'), end.strftime('%Y%m%d')))
-        end = add_months(end, interval-1)
+        start = add_months(start, 3)
+        end = add_months(end, 3)
 
     return res
 
