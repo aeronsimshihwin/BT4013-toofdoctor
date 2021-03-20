@@ -6,7 +6,8 @@ from tqdm import tqdm
 
 from models.categorical import (
     XGBWrapper,
-    RFWrapper
+    RFWrapper,
+    ArimaEnsemble,
 )
 from models.numeric import (
     Arima,
@@ -27,7 +28,7 @@ import utils
 SAVED_MODELS = {
     # 'rf': RFWrapper,
     # 'xgb': XGBWrapper,
-    'arima': Arima,
+    'arima+xgb': ArimaEnsemble,
 }
 
 LOADED_MODELS = {}
