@@ -60,7 +60,7 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     for i, future in enumerate(utils.futuresList):
         # Slice data by futures
         df = pd.DataFrame({
-            'OPEN': OPEN[:, i],
+            'OPEN': OPEN[:, i], 
             'HIGH': HIGH[:, i],
             'LOW': LOW[:, i],
             'CLOSE': CLOSE[:, i],
