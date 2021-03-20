@@ -47,6 +47,8 @@ def walk_forward(
     
     if start_index is None:
         start_index = X.index.min()
+    else:
+        start_index = max(start_index, X.index.min())
 
     # Trace train window forwards in time
     train_start = _first_quarter_after(start_index)
