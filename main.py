@@ -9,13 +9,12 @@ from models.categorical import (
     RFWrapper
 )
 from models.numeric import (
-    ArimaRaw, 
-    ArimaLinear, 
-    ArimaNoTrend, 
-    ArimaLinearNoTrend,
+    Arima,
 )
 from strategy import (
     basic_strategy, 
+    long_only,
+    short_only,
     fixed_threshold_strategy, 
     perc_threshold_strategy,
     futures_only,
@@ -27,15 +26,13 @@ import utils
 # Load saved models
 SAVED_MODELS = {
     # 'rf': RFWrapper,
-    'xgb': XGBWrapper,
-    # 'arima': ArimaRaw,
-    # 'arimalinear': ArimaLinear,
-    # 'arimanotrend': ArimaNoTrend,
-    # 'arimalinearnotrend': ArimaLinearNoTrend,
+    # 'xgb': XGBWrapper,
+    'arima': Arima,
 }
 
 LOADED_MODELS = {}
 for name, model in SAVED_MODELS.items():
+    print(f'loading {name} from {model.SAVED_DIR}...')
     for future in utils.futuresList:
         pickle_path = f'{model.SAVED_DIR}/{future}.p'
         try:
@@ -43,13 +40,6 @@ for name, model in SAVED_MODELS.items():
                 LOADED_MODELS[name, future] = pickle.load(f)
         except:
             raise FileNotFoundError(f'No saved {name} for {future}!')
-
-# Old model loading method
-# LOADED = {}
-# for name, model in SAVED.items():
-#     for future in utils.futuresList:
-#         LOADED[name, future] = model()
-#         LOADED[name, future].load(f'{future}.p')
 
 
 def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
@@ -66,15 +56,6 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     date_index = pd.to_datetime(DATE, format='%Y%m%d')
     data = dict()
 
-    # Raw data (This is here in case of disaster)
-    # data.update({
-    #     'OPEN': pd.DataFrame(OPEN, index=date_index, columns=utils.futuresAllList),
-    #     'HIGH': pd.DataFrame(HIGH, index=date_index, columns=utils.futuresAllList),
-    #     'LOW': pd.DataFrame(LOW, index=date_index, columns=utils.futuresAllList),
-    #     'CLOSE': pd.DataFrame(CLOSE, index=date_index, columns=utils.futuresAllList),
-    #     'VOL': pd.DataFrame(VOL, index=date_index, columns=utils.futuresAllList),
-    # })
-
     # Data + preprocessing and indicators
     for i, future in enumerate(utils.futuresList):
         # Slice data by futures
@@ -85,8 +66,15 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
             'CLOSE': CLOSE[:, i],
             'VOL': VOL[:, i],
         }, index=date_index)
+        
+        # ARIMA: Velocity and acceleration terms for linearized data
+        df = utils.linearize(df, old_var='CLOSE', new_var='CLOSE_LINEAR')
+        df = utils.detrend(df, old_var='CLOSE_LINEAR', new_var='CLOSE_VELOCITY')
+        df = utils.detrend(df, old_var='CLOSE_VELOCITY', new_var='CLOSE_ACCELERATION')
+        
         pass # Add technical_indicators as columns in each future dataframe
         pass # Add preprocessed features as columns in each future dataframe
+        
         data[future] = df
 
     # Economic indicators
@@ -145,11 +133,17 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     magnitude = utils.magnitude(prediction)
     
     # Futures strategy (Allocate position based on predictions)
-    model = prediction.columns[0] # Arbitrarily pick first model in case of multiple 
-    position = basic_strategy(sign[model], magnitude[model])
-    
+    model = prediction.columns[0] # Arbitrarily pick first model in case of multiple
+    position = basic_strategy(sign[model], magnitude[model]) 
+    # position = long_only(sign[model], magnitude[model]) 
+    # position = short_only(sign[model], magnitude[model]) 
+        
     # Cash-futures strategy
     position = futures_only(position)
+
+    # Update persistent data across runs
+    settings['sign'].append(sign)
+    settings['magnitude'].append(magnitude)
 
     # Update persistent data across runs
     settings['sign'].append(sign)
