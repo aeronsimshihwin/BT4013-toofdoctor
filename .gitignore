@@ -6,8 +6,10 @@ __pycache__/
 .ipynb_checkpoints/
 .DS_Store
 saved_models/.DS_Store
+.Rhistory
 
 # Data files
 tickerData/
 model_metrics/
+saved_models/numeric/arima/**/
 windows.txt
