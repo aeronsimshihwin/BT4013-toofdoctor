@@ -106,6 +106,24 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
             index = date_index,
             columns = ['CLOSE'],
         )
+
+    ### Technical indicator strategy output ###
+    ### Added here temporarily. Aeron to get help from Mitch ###
+    # nMarkets = CLOSE.shape[1]
+    # position = np.zeros(nMarkets)
+    # index = 0
+    # for future in utils.futuresList:
+    #     # load data
+    #     df = pd.read_csv(f"tickerData/{future}.txt", parse_dates = ["DATE"])
+    #     df.columns = ['DATE', 'OPEN', 'HIGH', 'LOW', 'CLOSE', 'VOL', 'OI', 'P', 'R', 'RINFO']
+    #     df = df.set_index("DATE")
+    #     df = df[(df.VOL != 0) & (df.CLOSE != 0)]
+    #     df = df.dropna(axis=0)
+
+    #     # position[index+1] = utils.fourCandleHammer(df['CLOSE'])
+    #     # position[index+1] = utils.ema_strategy(df['CLOSE'])
+    #     position[index+1] = utils.swing_setup(df['HIGH'], df['LOW'], df['CLOSE'])
+    #     index += 1    
     
     # Fit and predict
     prediction = pd.DataFrame(index=utils.futuresList)
