@@ -53,4 +53,4 @@ class SVMWrapper:
         y_pred = self.model.predict_proba(X_test.reshape(1, -1)) # returns [P(-1), P(1)]
         y_pred_pos = y_pred[0][1] # return probability of class 1
         y_pred_norm = y_pred_pos - 0.5 # normalise, centre about zero
-        return y_pred_pos ## to review this
+        return y_pred_norm ## to review this
