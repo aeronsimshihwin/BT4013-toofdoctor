@@ -34,7 +34,6 @@ class Preprocessor:
                 data[output] = processed_output
             else:
                 processed_output = np.vstack(result).T
-                print(processed_output)
                 for i in range(len(output)):
                     data[output[i]] = processed_output[:, i]
 
