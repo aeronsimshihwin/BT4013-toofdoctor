@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import date
 from pandas.tseries.offsets import DateOffset
 from typing import Callable, Mapping
-from .futuresInfo import keys
+import utils 
 
 def linearize(data: pd.DataFrame, old_var: str, new_var: str):
     data[new_var] = np.log(data[old_var])
@@ -67,9 +67,17 @@ def prepare_data(future):
     # CATEGORICAL: y variable (long/short)
     df = long_short(df, old_var='CLOSE_DIFF', new_var='LONG_SHORT')
 
-    pass # Add technical indicators as columns in each future dataframe
+    # TECHNICAL INDICATORS
+    df = utils.SMA(df, input='CLOSE', output='SMA20', periods=20)
+    df = utils.EMA(df, input='CLOSE', output='EMA20', periods=20)
+    df = utils.MACD(df, input='CLOSE', output='MACD')
+    df = utils.RSI(df, input='CLOSE', output='RSI14', periods=14)
+    df = utils.ATR(df, input=['HIGH', 'LOW', 'CLOSE'], output='ATR', periods=14)
+    df = utils.VPT(df, input=['CLOSE', 'VOL'], output='VPT')
+    df = utils.BBands(df, input='CLOSE', output=['BBANDS_HIGH','BBANDS_LOW'], periods=14)
+    df = utils.CCI(df, input=['HIGH', 'LOW', 'CLOSE'], output='CCI', periods=20)
 
-    for key in keys:
+    for key in utils.keys:
         key_df = pd.read_csv(f"tickerData/{key}.txt", parse_dates=["DATE"])
         key_df = key_df.set_index("DATE")
         df[key] = key_df["CLOSE"]
