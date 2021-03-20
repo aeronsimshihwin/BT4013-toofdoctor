@@ -31,9 +31,12 @@ class Preprocessor:
             # Handle multi output
             if self.num_outputs == 1:
                 processed_output = result
+                data[output] = processed_output
             else:
                 processed_output = np.vstack(result).T
-            data[output] = processed_output
+                print(processed_output)
+                for i in range(len(output)):
+                    data[output[i]] = processed_output[:, i]
 
             return data
         return helper
