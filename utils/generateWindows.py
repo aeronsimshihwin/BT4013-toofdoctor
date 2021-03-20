@@ -1,5 +1,6 @@
 import datetime
 import calendar
+from datetime import timedelta
 
 def add_months(sourcedate, months):
     month = sourcedate.month - 1 + months
@@ -8,20 +9,42 @@ def add_months(sourcedate, months):
     day = calendar.monthrange(year,month)[1]
     return datetime.datetime(year, month, day)
 
-def generate_windows_from(start_date, stop_date, interval):
+def backdate(date_input, num_days):
+    res = date_input + timedelta(1)
+    # date_input is Sunday, get the latest Friday
+    if date_input.isoweekday() == 7: res = res - timedelta(2)
+
+    # date_input is Saturday, get the latest Friday
+    elif date_input.isoweekday() == 6: res = res - timedelta(1)
+    
+    elif date_input.isoweekday() != 5:
+        res = res + timedelta(5 - date_input.isoweekday())
+        num_days += (5 - date_input.isoweekday())
+
+    while num_days > 5:
+        res = res - timedelta(7)
+        num_days -= 5
+
+    if num_days != 0:
+        res = res - timedelta(num_days)
+    return res
+
+def generate_windows_from(_start, _stop, _interval):
     # Format of argument:
-    # start: yyyymmdd
-    # stop: yyyymmdd
-    # interval: Number of months for each window (E.g. Jan to Mar is 3)
-    start = datetime.datetime(int(start_date[:4]), int(start_date[4:6]), int(start_date[-2:]))
-    stop = datetime.datetime(int(stop_date[:4]), int(stop_date[4:6]), int(stop_date[-2:]))
-    end = add_months(start, interval-1)
+    # _start: yyyymmdd
+    # _stop: yyyymmdd
+    # _interval: Number of months for each window (E.g. Jan to Mar is 3)
+
+    start_date_input = datetime.datetime(int(_start[:4]), int(_start[4:6]), int(_start[-2:]))
+    start_date = backdate(start_date_input, 504)
+
+    stop_date = datetime.datetime(int(_stop[:4]), int(_stop[4:6]), int(_stop[-2:]))
+    end = add_months(start_date, _interval-1)
     res = []
 
-    while end <= stop:
-        res.append((start.strftime('%Y%m%d'), end.strftime('%Y%m%d')))
-        start = add_months(start, 3)
-        end = add_months(end, 3)
+    while end <= stop_date:
+        res.append((start_date.strftime('%Y%m%d'), end.strftime('%Y%m%d')))
+        end = add_months(end, _interval-1)
 
     return res
 

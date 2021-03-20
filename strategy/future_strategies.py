@@ -4,6 +4,12 @@ import pandas as pd
 def basic_strategy(sig, mag):
     return sig * mag
 
+def long_only(sig, mag):
+    return np.maximum(0, sig) * mag
+
+def short_only(sig, mag):
+    return np.minimum(0, sig) * mag
+
 def fixed_threshold_strategy(sig, mag, thres):
     '''
     only invest in stocks with magnitudes that pass a specific threshold
