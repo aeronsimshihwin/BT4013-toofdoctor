@@ -89,11 +89,19 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
         df = utils.linearize(df, old_var='VOL', new_var='VOL_LINEAR')
         df = utils.detrend(df, old_var='VOL_LINEAR', new_var='VOL_VELOCITY')
         df = utils.percentage_diff(df, old_var='VOL_LINEAR', new_var='VOL_LINEAR_PCT')
-        
+
+        # Technical indicators
+        df = utils.SMA(df, input='CLOSE', output='SMA20', periods=20)
+        df = utils.EMA(df, input='CLOSE', output='EMA20', periods=20)
+        df = utils.MACD(df, input='CLOSE', output='MACD')
+        df = utils.RSI(df, input='CLOSE', output='RSI14', periods=14)
+        df = utils.ATR(df, input=['HIGH', 'LOW', 'CLOSE'], output='ATR', periods=14)
+        df = utils.VPT(df, input=['CLOSE', 'VOL'], output='VPT')
+        df = utils.BBands(df, input='CLOSE', output=['BBands_high', 'BBands_low'], periods=14)
+        df = utils.CCI(df, input=['HIGH', 'LOW', 'CLOSE'], output='CCI', periods=20)
+
         # CATEGORICAL: Y var
         df = utils.long_short(df, old_var='CLOSE_DIFF', new_var='LONG_SHORT')
-
-        pass # Add technical_indicators as columns in each future dataframe
 
         data[future] = df
 
