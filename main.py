@@ -103,6 +103,9 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
         df = utils.BBands(df, input='CLOSE', output=['BBANDS_HIGH', 'BBANDS_LOW'], periods=14)
         df = utils.CCI(df, input=['HIGH', 'LOW', 'CLOSE'], output='CCI', periods=20)
 
+        df = df.replace(np.inf, np.nan)
+        df = df.fillna(method="ffill")
+
         data[future] = df
 
     # Economic indicators
