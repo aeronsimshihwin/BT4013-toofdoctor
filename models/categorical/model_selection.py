@@ -47,10 +47,14 @@ def save_model(path, metric, model_fn, model_wrapper, future, X_vars, y_var, ext
             params_dict[col] = best_metric[col][0]
     
     # train model using optimal parameters
-    model = model_fn(**params_dict)
-    fitted = model.fit(X_train, y_train)
-    save = model_wrapper(model=fitted, X=X_vars, y=y_var)
-
+    try:
+        model = model_fn(**params_dict)
+        fitted = model.fit(X_train, y_train)
+        save = model_wrapper(model=fitted, X=X_vars, y=y_var)
+    except:
+        print(params_dict)
+        return (X_train, y_train)
+    
     with open(f'saved_models/categorical/{path}/{future}.p', 'wb') as f:
         pickle.dump(save, f)
 

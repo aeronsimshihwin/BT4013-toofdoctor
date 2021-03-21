@@ -6,6 +6,10 @@ from pandas.tseries.offsets import DateOffset
 from typing import Callable, Mapping
 import utils 
 
+FUTURE_CORR_PATH = "utils/future_corr.csv"
+PRICE_CORRELATIONS = pd.read_csv(FUTURE_CORR_PATH)
+PRICE_CORRELATIONS = PRICE_CORRELATIONS.set_index("future")
+
 def linearize(data: pd.DataFrame, old_var: str, new_var: str):
     data[new_var] = np.log(data[old_var])
     return data
@@ -25,6 +29,7 @@ def add_stationary(data: pd.DataFrame, old_col, new_col):
 
 def percentage_diff(data: pd.DataFrame, old_var, new_var, periods:int=1):
     data[new_var] = data[old_var].pct_change(periods=periods).fillna(0)
+    data[data[new_var] == np.inf] = 0
     return data
 
 def diff(data: pd.DataFrame, old_var, new_var, periods:int=1):
@@ -39,6 +44,17 @@ def long_short(data: pd.DataFrame, old_var, new_var, periods:int=1):
     data[new_var] = data[old_var].apply(lambda x: np.nan if math.isnan(x) else 1 if x > 0 else -1)
     return data
 
+def generate_X_vars(future, linearise=False):
+    X_vars = ["MACD", "RSI14", "VPT"]
+    future_corr = PRICE_CORRELATIONS.loc[future]
+    if linearise and (abs(future_corr["linear_corr"]) < abs(future_corr["exp_corr"])):
+        X_vars.extend(["CLOSE_LINEAR_PCT", "VOL_LINEAR_PCT"])
+    else:
+        X_vars.extend(["CLOSE_PCT", "VOL_PCT"])
+        
+    return X_vars
+    
+    
 def prepare_data(future):
     df = pd.read_csv(f"tickerData/{future}.txt", parse_dates=["DATE"])
     df.columns = ['DATE', 'OPEN', 'HIGH', 'LOW', 'CLOSE', 'VOL', 'OI', 'P', 'R', 'RINFO']
@@ -76,6 +92,9 @@ def prepare_data(future):
     df = utils.VPT(df, input=['CLOSE', 'VOL'], output='VPT')
     df = utils.BBands(df, input='CLOSE', output=['BBANDS_HIGH','BBANDS_LOW'], periods=14)
     df = utils.CCI(df, input=['HIGH', 'LOW', 'CLOSE'], output='CCI', periods=20)
+
+    df = df.replace(np.inf, np.nan)
+    df = df.fillna(method="ffill")
 
     for key in utils.keys:
         key_df = pd.read_csv(f"tickerData/{key}.txt", parse_dates=["DATE"])
