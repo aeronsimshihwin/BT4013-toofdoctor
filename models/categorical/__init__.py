@@ -4,3 +4,4 @@ from .arima_ensemble import ArimaEnsemble
 from .xgb import XGBWrapper
 from .rf import RFWrapper
 from .logreg import LogRegWrapper
+from .model_validation_techIndicators import walk_forward_techIndicators

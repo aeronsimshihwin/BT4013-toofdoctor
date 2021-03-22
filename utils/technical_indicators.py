@@ -109,7 +109,7 @@ def gradient(lst):
         if (not math.isnan(val)) and (val != 0):
             return (lst[-1] - val)/val
 
-def fourCandleHammer(close, N=20, highFactor=0.95, lowFactor=1.05):
+def fourCandleHammer(close, N=30, highFactor=0.95, lowFactor=1.05):
     """
     @param: close A series object containing closing prices.
     @param: N The number of most recent days to scan through and find max and min price. For tuning purposes.
@@ -117,35 +117,45 @@ def fourCandleHammer(close, N=20, highFactor=0.95, lowFactor=1.05):
     @param: lowFactor A constant value that will be multiplied to the min price found over the n recent days. For tuning purposes.
     Returns 1 if should long futures, -1 if should short futures, 0 if do nothing.
     Strategy reference: https://tradingstrategyguides.com/technical-analysis-strategy/
+    Note: N must be greater than 26, else EMA26 will give nan and not comparable to EMA13.
     """
-    start_idx = N+4
-    close_ex5days = close[-start_idx:-4]
-    close_last5days = close[-5:]
     
-    EMA13 = EMA(pd.Series(close), 13)
-    EMA26 = EMA(pd.Series(close), 26)
+    num_data_points = close.size
+    start_idx = 0
+    end_idx = N+5-1
+    output = [-100] * end_idx
+    while end_idx != num_data_points:
+        close_ex5days = close[start_idx:end_idx-5]
+        close_last5days = close[end_idx-5:end_idx]
+        
+        EMA13 = EMA(pd.Series(close), 13)
+        EMA26 = EMA(pd.Series(close), 26)
 
-    NDayNewHigh = close_ex5days[-1] >= highFactor * max(close_ex5days)
-    NDayNewLow = close_ex5days[-1] <= lowFactor * min(close_ex5days)
-    if EMA13[-1] > EMA26[-1] and EMA13[-2] <= EMA26[-2]: # Uptrend
-        if NDayNewHigh: # 1) Market made a N-days new high
-            # 2) Identify 4 days pullback that goes against prevailing trend (4 consecutive days retracement)
-            if (close_last5days[0] > close_last5days[1]):
-                if (close_last5days[1] > close_last5days[2]):
-                    if (close_last5days[2] > close_last5days[3]):
-                        # 3) The latest closing price needs to be above the closing price from 1 day ago.
-                        if close_last5days[4] > close_last5days[3]:
-                            return 1
-    elif EMA13[-1] < EMA26[-1] and EMA13[-2] >= EMA26[-2]: # Downtrend
-        if NDayNewLow: # 1) Market made a N-days new low
-            # 2) Identify 4 days pullback that goes against prevailing trend (4 consecutive days retracement)
-            if (close_last5days[0] < close_last5days[1]):
-                if (close_last5days[1] < close_last5days[2]):
-                    if (close_last5days[2] < close_last5days[3]):
-                        # 3) The latest closing price needs to be below the closing price from 1 day ago.
-                        if close_last5days[4] < close_last5days[3]:
-                            return -1
-    return 0 # no long/short
+        NDayNewHigh = close_ex5days[-1] >= highFactor * max(close_ex5days)
+        NDayNewLow = close_ex5days[-1] <= lowFactor * min(close_ex5days)
+        if EMA13[-1] > EMA26[-1] and EMA13[-2] <= EMA26[-2]: # Uptrend
+            if NDayNewHigh: # 1) Market made a N-days new high
+                # 2) Identify 4 days pullback that goes against prevailing trend (4 consecutive days retracement)
+                if (close_last5days[0] > close_last5days[1]):
+                    if (close_last5days[1] > close_last5days[2]):
+                        if (close_last5days[2] > close_last5days[3]):
+                            # 3) The latest closing price needs to be above the closing price from 1 day ago.
+                            if close_last5days[4] > close_last5days[3]:
+                                output.append(1)
+        elif EMA13[-1] < EMA26[-1] and EMA13[-2] >= EMA26[-2]: # Downtrend
+            if NDayNewLow: # 1) Market made a N-days new low
+                # 2) Identify 4 days pullback that goes against prevailing trend (4 consecutive days retracement)
+                if (close_last5days[0] < close_last5days[1]):
+                    if (close_last5days[1] < close_last5days[2]):
+                        if (close_last5days[2] < close_last5days[3]):
+                            # 3) The latest closing price needs to be below the closing price from 1 day ago.
+                            if close_last5days[4] < close_last5days[3]:
+                                output.append(-1)
+        else:
+            output.append(0) # no long/short
+        start_idx += 1
+        end_idx += 1
+    return output
 
 def ema_strategy(close, shortTermDays=20, longTermDays=50):
     """
