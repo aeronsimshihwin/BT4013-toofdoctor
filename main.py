@@ -109,26 +109,44 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
         data[future] = df
 
     # Economic indicators
-    vals = (
-        USA_ADP, USA_EARN,\
-        USA_HRS, USA_BOT, USA_BC, USA_BI, USA_CU, USA_CF, USA_CHJC, USA_CFNAI,\
-        USA_CP, USA_CCR, USA_CPI, USA_CCPI, USA_CINF, USA_DFMI, USA_DUR,\
-        USA_DURET, USA_EXPX, USA_EXVOL, USA_FRET, USA_FBI, USA_GBVL, USA_GPAY,\
-        USA_HI, USA_IMPX, USA_IMVOL, USA_IP, USA_IPMOM, USA_CPIC, USA_CPICM,\
-        USA_JBO, USA_LFPR, USA_LEI, USA_MPAY, USA_MP, USA_NAHB, USA_NLTTF,\
-        USA_NFIB, USA_NFP, USA_NMPMI, USA_NPP, USA_EMPST, USA_PHS, USA_PFED,\
-        USA_PP, USA_PPIC, USA_RSM, USA_RSY, USA_RSEA, USA_RFMI, USA_TVS, USA_UNR,\
-        USA_WINV,
+    indicators = pd.DataFrame(
+        data = np.hstack([
+            USA_ADP, USA_EARN,\
+            USA_HRS, USA_BOT, USA_BC, USA_BI, USA_CU, USA_CF, USA_CHJC, USA_CFNAI,\
+            USA_CP, USA_CCR, USA_CPI, USA_CCPI, USA_CINF, USA_DFMI, USA_DUR,\
+            USA_DURET, USA_EXPX, USA_EXVOL, USA_FRET, USA_FBI, USA_GBVL, USA_GPAY,\
+            USA_HI, USA_IMPX, USA_IMVOL, USA_IP, USA_IPMOM, USA_CPIC, USA_CPICM,\
+            USA_JBO, USA_LFPR, USA_LEI, USA_MPAY, USA_MP, USA_NAHB, USA_NLTTF,\
+            USA_NFIB, USA_NFP, USA_NMPMI, USA_NPP, USA_EMPST, USA_PHS, USA_PFED,\
+            USA_PP, USA_PPIC, USA_RSM, USA_RSY, USA_RSEA, USA_RFMI, USA_TVS, USA_UNR,\
+            USA_WINV,
+        ]),
+        index = date_index,
+        columns = utils.keys, 
     )
-    for key, val in zip(utils.keys, vals):
-        for i, future in enumerate(utils.futuresList):
-            df = data[future]
-            df[key] = pd.Series(data=val.flatten(), index=date_index)
-            # forward fill to replace nonexistent values with previous values
-            df[key] = df[key].fillna(method="ffill")
-            # backfill to fill first 2 nan values
-            df = utils.percentage_diff(df, old_var=key, new_var=key+"_PCT")
-            df = utils.diff(df, old_var=key, new_var=key+"_DIFF")
+    indicators = indicators.ffill()
+    indicators = utils.percentage_diff(indicators, 
+        old_var = utils.keys, 
+        new_var = [key+"_PCT" for key in utils.keys],
+    )
+    indicators = utils.diff(
+        indicators, 
+        old_var = utils.keys, 
+        new_var = [key+"_PCT" for key in utils.keys],
+    )
+    
+    for future, df in data.items():
+        data[future] = df.join(indicators)
+
+    # for key, val in zip(utils.keys, vals):
+    #     for i, future in enumerate(utils.futuresList):
+    #         df = data[future]
+    #         df[key] = pd.Series(data=val.flatten(), index=date_index)
+    #         # forward fill to replace nonexistent values with previous values
+    #         df[key] = df[key].fillna(method="ffill")
+    #         # backfill to fill first 2 nan values
+    #         df = utils.percentage_diff(df, old_var=key, new_var=key+"_PCT")
+    #         df = utils.diff(df, old_var=key, new_var=key+"_DIFF")
 
     ### Technical indicator strategy output ###
     ### Added here temporarily. Aeron to get help from Mitch ###
