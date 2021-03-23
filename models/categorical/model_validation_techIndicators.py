@@ -22,7 +22,7 @@ def _first_quarter_after(start_index):
         return datetime(start_index.year, month, 1)
 
 def walk_forward_techIndicators(
-    strategy_output,
+    df_strategy,
     X: pd.DataFrame,
     y: pd.Series,
     cost_weight: pd.Series,
@@ -98,8 +98,9 @@ def walk_forward_techIndicators(
         X_train, X_val = X.loc[train_mask].to_numpy(), X.loc[val_mask].to_numpy()
         y_train, y_val = y.loc[train_mask].to_numpy(), y.loc[val_mask].to_numpy()
         cost_val = cost_weight.loc[val_mask].to_numpy()
-
-        y_pred = np.array(list(compress(strategy_output, val_mask)))
+        
+        long_short = df_strategy['LONG_SHORT']
+        y_pred = long_short.loc[val_mask].to_numpy()
         if -100 in y_pred: # In first window, without sufficient "N" data points, strategy will not output long/short/do nothing.
             unique_val, counts = np.unique(y_pred, return_counts=True)
             unique_val_count = dict(zip(unique_val, counts))
@@ -107,11 +108,30 @@ def walk_forward_techIndicators(
             y_pred = y_pred[numOfInvalids:]
             y_val = y_val[numOfInvalids:]
         
-        # fitted = model_params.fit(X_train, y_train)
-        # y_pred = fitted.predict(X_val)
-        results.loc[i, "accuracy"] = accuracy_score(pd.Series(y_val), pd.Series(y_pred))
-        results.loc[i, "opp_cost"] = utils.opportunity_cost(pd.Series(y_val), pd.Series(y_pred), pd.Series(cost_val))
+        #TODO
+        # y_pred has many zeros because it isn't that direct to long/short.
+        # Whereas y_val indicates easily when to long/short.
+        # Alternative: Remove all the zeros in y_pred and the corresponding long/short in y_val
+        # Compute accuracy and opp cost.
 
+        # predS = pd.Series(y_pred)
+        # valS = pd.Series(y_val)
+        # cols = {0: 'Pred', 1: 'Val'}
+        # df = pd.concat([predS, valS], axis=1)
+        # df.rename(columns = cols, inplace = True)
+        # for index, row in df.iterrows():
+        #     if row['Pred']==0 or row['Val']==0:
+        #         df.drop(index, inplace=True)
+        # y_pred = df['Pred']
+        # y_val = df['Val']
+
+        results.loc[i, "accuracy"] = accuracy_score(pd.Series(y_val), pd.Series(y_pred))
+
+        # results.loc[i, "opp_cost"] = utils.opportunity_cost(pd.Series(y_val), pd.Series(y_pred), pd.Series(cost_val))
+        mask = (pd.Series(y_val) != pd.Series(y_pred)).apply(lambda x: int(x))
+        temp = mask * abs(pd.Series(cost_val))
+        results.loc[i, "opp_cost"] = temp.sum()
+        
     # Combine windows with metric results
     win_results = pd.concat([windows, results], axis=1)
 
