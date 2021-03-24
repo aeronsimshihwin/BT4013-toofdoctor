@@ -6,16 +6,21 @@ import utils
 SAVED_DIR = "/saved_models/categorical/swingSetup"
 
 class swingSetupWrapper:
-    def __init__(self, model=None, y=None, X=None):
-        self.model = model
+    def __init__(self, model_params=None, y=None, X=None):
+        self.model_params = model_params
         self.get_y = y # Extracts y from data[future]
         self.get_X = X # Extracts X from data[future]
     
-    def fit(self, data, future): 
-        X = None if self.get_X is None else self.get_X(data[future])
-        y = None if self.get_y is None else self.get_y(data[future])
-        # Don't think this is needed for technical indicators
+    # Don't require fit function
+    # def fit(self, data, future): 
+    #     X = None if self.get_X is None else self.get_X(data[future])
+    #     y = None if self.get_y is None else self.get_y(data[future])
 
-    def predict(self, data, future, **kwargs):
-        utils.swing_setup(data)
-        #TODO
+    def predict(self, data, future):
+        data_df = data[future]
+        # slice only relevant data
+        X = data_df[self.get_X]
+
+        strategy_df = utils.swing_setup(X, self.model_params['shortTermDays'], self.model_params['longTermDays'], self.model_params['NDays'])
+        y_pred = strategy_df[self.get_y][-1]
+        return y_pred
