@@ -8,6 +8,7 @@ from models.categorical import (
     XGBWrapper,
     RFWrapper,
     ArimaEnsemble,
+    LogRegWrapper
 )
 from models.numeric import (
     Arima,
@@ -28,7 +29,8 @@ import utils
 SAVED_MODELS = {
     # 'rf': RFWrapper,
     # 'xgb': XGBWrapper,
-    'arima+xgb': ArimaEnsemble,
+    # 'arima+xgb': ArimaEnsemble,
+    'logreg': LogRegWrapper
 }
 
 LOADED_MODELS = {}
@@ -68,45 +70,83 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
             'VOL': VOL[:, i],
         }, index=date_index)
         
+        # Replace nan and 0 values with previous day's data (ffill)
+        df = df.replace(0, np.nan)
+        df = df.fillna(method="ffill")
+
         # ARIMA: Velocity and acceleration terms for linearized data
         df = utils.linearize(df, old_var='CLOSE', new_var='CLOSE_LINEAR')
         df = utils.detrend(df, old_var='CLOSE_LINEAR', new_var='CLOSE_VELOCITY')
         df = utils.detrend(df, old_var='CLOSE_VELOCITY', new_var='CLOSE_ACCELERATION')
         
-        pass # Add technical_indicators as columns in each future dataframe
-        pass # Add preprocessed features as columns in each future dataframe
-        
+        # CATEGORICAL: Preprocessed features
+        df = utils.percentage_diff(df, old_var='CLOSE', new_var='CLOSE_PCT')
+        df = utils.diff(df, old_var='CLOSE', new_var='CLOSE_DIFF')
+        df = utils.percentage_diff(df, old_var='CLOSE_LINEAR', new_var='CLOSE_LINEAR_PCT')
+
+        df = utils.percentage_diff(df, old_var='VOL', new_var='VOL_PCT')
+        df = utils.diff(df, old_var='VOL', new_var='VOL_DIFF')
+        df = utils.linearize(df, old_var='VOL', new_var='VOL_LINEAR')
+        df = utils.detrend(df, old_var='VOL_LINEAR', new_var='VOL_VELOCITY')
+        df = utils.percentage_diff(df, old_var='VOL_LINEAR', new_var='VOL_LINEAR_PCT')
+
+        # CATEGORICAL: Y var
+        df = utils.long_short(df, old_var='CLOSE_DIFF', new_var='LONG_SHORT')
+
+        # TECHNICAL INDICATORS
+        df = utils.SMA(df, input='CLOSE', output='SMA20', periods=20)
+        df = utils.EMA(df, input='CLOSE', output='EMA20', periods=20)
+        df = utils.MACD(df, input='CLOSE', output='MACD')
+        df = utils.RSI(df, input='CLOSE', output='RSI14', periods=14)
+        df = utils.ATR(df, input=['HIGH', 'LOW', 'CLOSE'], output='ATR', periods=14)
+        df = utils.VPT(df, input=['CLOSE', 'VOL'], output='VPT')
+        df = utils.BBands(df, input='CLOSE', output=['BBANDS_HIGH', 'BBANDS_LOW'], periods=14)
+        df = utils.CCI(df, input=['HIGH', 'LOW', 'CLOSE'], output='CCI', periods=20)
+
+        df = df.replace(np.inf, np.nan)
+        df = df.fillna(method="ffill")
+
         data[future] = df
 
     # Economic indicators
-    keys = (
-        'USA_ADP, USA_EARN,\
-        USA_HRS, USA_BOT, USA_BC, USA_BI, USA_CU, USA_CF, USA_CHJC, USA_CFNAI,\
-        USA_CP, USA_CCR, USA_CPI, USA_CCPI, USA_CINF, USA_DFMI, USA_DUR,\
-        USA_DURET, USA_EXPX, USA_EXVOL, USA_FRET, USA_FBI, USA_GBVL, USA_GPAY,\
-        USA_HI, USA_IMPX, USA_IMVOL, USA_IP, USA_IPMOM, USA_CPIC, USA_CPICM,\
-        USA_JBO, USA_LFPR, USA_LEI, USA_MPAY, USA_MP, USA_NAHB, USA_NLTTF,\
-        USA_NFIB, USA_NFP, USA_NMPMI, USA_NPP, USA_EMPST, USA_PHS, USA_PFED,\
-        USA_PP, USA_PPIC, USA_RSM, USA_RSY, USA_RSEA, USA_RFMI, USA_TVS, USA_UNR,\
-        USA_WINV'
-    ).replace(' ', '').split(',')
-    vals = (
-        USA_ADP, USA_EARN,\
-        USA_HRS, USA_BOT, USA_BC, USA_BI, USA_CU, USA_CF, USA_CHJC, USA_CFNAI,\
-        USA_CP, USA_CCR, USA_CPI, USA_CCPI, USA_CINF, USA_DFMI, USA_DUR,\
-        USA_DURET, USA_EXPX, USA_EXVOL, USA_FRET, USA_FBI, USA_GBVL, USA_GPAY,\
-        USA_HI, USA_IMPX, USA_IMVOL, USA_IP, USA_IPMOM, USA_CPIC, USA_CPICM,\
-        USA_JBO, USA_LFPR, USA_LEI, USA_MPAY, USA_MP, USA_NAHB, USA_NLTTF,\
-        USA_NFIB, USA_NFP, USA_NMPMI, USA_NPP, USA_EMPST, USA_PHS, USA_PFED,\
-        USA_PP, USA_PPIC, USA_RSM, USA_RSY, USA_RSEA, USA_RFMI, USA_TVS, USA_UNR,\
-        USA_WINV,
+    indicators = pd.DataFrame(
+        data = np.hstack([
+            USA_ADP, USA_EARN,\
+            USA_HRS, USA_BOT, USA_BC, USA_BI, USA_CU, USA_CF, USA_CHJC, USA_CFNAI,\
+            USA_CP, USA_CCR, USA_CPI, USA_CCPI, USA_CINF, USA_DFMI, USA_DUR,\
+            USA_DURET, USA_EXPX, USA_EXVOL, USA_FRET, USA_FBI, USA_GBVL, USA_GPAY,\
+            USA_HI, USA_IMPX, USA_IMVOL, USA_IP, USA_IPMOM, USA_CPIC, USA_CPICM,\
+            USA_JBO, USA_LFPR, USA_LEI, USA_MPAY, USA_MP, USA_NAHB, USA_NLTTF,\
+            USA_NFIB, USA_NFP, USA_NMPMI, USA_NPP, USA_EMPST, USA_PHS, USA_PFED,\
+            USA_PP, USA_PPIC, USA_RSM, USA_RSY, USA_RSEA, USA_RFMI, USA_TVS, USA_UNR,\
+            USA_WINV,
+        ]),
+        index = date_index,
+        columns = utils.keys, 
     )
-    for key, val in zip(keys, vals):
-        data[key] = pd.DataFrame(
-            data = val,
-            index = date_index,
-            columns = ['CLOSE'],
-        )
+    indicators = indicators.ffill()
+    indicators = utils.percentage_diff(indicators, 
+        old_var = utils.keys, 
+        new_var = [key+"_PCT" for key in utils.keys],
+    )
+    indicators = utils.diff(
+        indicators, 
+        old_var = utils.keys, 
+        new_var = [key+"_PCT" for key in utils.keys],
+    )
+    
+    for future, df in data.items():
+        data[future] = df.join(indicators)
+
+    # for key, val in zip(utils.keys, vals):
+    #     for i, future in enumerate(utils.futuresList):
+    #         df = data[future]
+    #         df[key] = pd.Series(data=val.flatten(), index=date_index)
+    #         # forward fill to replace nonexistent values with previous values
+    #         df[key] = df[key].fillna(method="ffill")
+    #         # backfill to fill first 2 nan values
+    #         df = utils.percentage_diff(df, old_var=key, new_var=key+"_PCT")
+    #         df = utils.diff(df, old_var=key, new_var=key+"_DIFF")
 
     ### Technical indicator strategy output ###
     ### Added here temporarily. Aeron to get help from Mitch ###
@@ -138,7 +178,7 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     position = basic_strategy(sign[model], magnitude[model]) 
     # position = long_only(sign[model], magnitude[model]) 
     # position = short_only(sign[model], magnitude[model]) 
-        
+    
     # Cash-futures strategy
     position = futures_only(position)
 

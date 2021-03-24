@@ -1,6 +1,7 @@
 from models.categorical import (
     XGBWrapper,
-    RFWrapper
+    RFWrapper,
+    LogRegWrapper
 )
 
 from models.numeric import (

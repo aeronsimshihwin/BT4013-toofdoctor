@@ -27,7 +27,7 @@ def walk_forward(
     cost_weight: pd.Series,
     aggregation: Mapping[str, Callable] = {
         'SMA': utils.simple_moving_average, 
-        'EMA': utils.exponential_moving_average,
+        # 'EMA': utils.exponential_moving_average,
     },
     train_window: relativedelta = relativedelta(years=2),
     validation_window: relativedelta = relativedelta(months=3),
@@ -77,7 +77,6 @@ def walk_forward(
         validation_end = validation_start + validation_window    
 
         if validation_end > y.index[-1]:
-            print(f'warning: Insufficient data! Generated {len(windows)}/{max_windows} windows.')
             break
 
         windows.append({
@@ -101,7 +100,6 @@ def walk_forward(
 
         fitted = model.fit(X_train, y_train)
         y_pred = fitted.predict(X_val)
-
         results.loc[i, "accuracy"] = accuracy_score(pd.Series(y_val), pd.Series(y_pred))
         results.loc[i, "opp_cost"] = utils.opportunity_cost(pd.Series(y_val), pd.Series(y_pred), pd.Series(cost_val))
 
