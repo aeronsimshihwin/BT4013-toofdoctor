@@ -10,6 +10,10 @@ FUTURE_CORR_PATH = "utils/future_corr.csv"
 PRICE_CORRELATIONS = pd.read_csv(FUTURE_CORR_PATH)
 PRICE_CORRELATIONS = PRICE_CORRELATIONS.set_index("future")
 
+FUTURE_INDUSTRY_PATH = "utils/future_industry_mapping.csv"
+FUTURE_INDUSTRY = pd.read_csv(FUTURE_INDUSTRY_PATH)
+FUTURE_INDUSTRY = FUTURE_INDUSTRY.set_index("Ticker")
+
 def linearize(data: pd.DataFrame, old_var: str, new_var: str):
     data[new_var] = np.log(data[old_var])
     return data
@@ -44,13 +48,23 @@ def long_short(data: pd.DataFrame, old_var, new_var, periods:int=1):
     data[new_var] = data[old_var].apply(lambda x: np.nan if math.isnan(x) else 1 if x > 0 else -1)
     return data
 
-def generate_X_vars(future, linearise=False):
-    X_vars = ["MACD", "RSI14", "VPT"]
+def generate_X_vars(future, linearise=False, tech_indicators=["MACD", "RSI14", "VPT"], \
+                    macro_indicators=False, macro_indicators_var='PCT'):
+    X_vars = tech_indicators
+
+    # linearise only if price trends are more exponential than linear
     future_corr = PRICE_CORRELATIONS.loc[future]
     if linearise and (abs(future_corr["linear_corr"]) < abs(future_corr["exp_corr"])):
         X_vars.extend(["CLOSE_LINEAR_PCT", "VOL_LINEAR_PCT"])
     else:
         X_vars.extend(["CLOSE_PCT", "VOL_PCT"])
+
+    # get macro indicators corresponding to future's industry
+    future_ind = FUTURE_INDUSTRY.loc[future]
+    industry_indicators = utils.industryIndicators[future_ind['Type']]
+    if macro_indicators and (future_ind['UnitedStates'] == 1):
+        macro_indicators_lst = [x for x in industry_indicators]
+        X_vars.extend(macro_indicators_lst)
         
     return X_vars
     
