@@ -1,0 +1,89 @@
+﻿Ticker,Name,Type,UnitedStates
+F_AD,Australian Dollar,Currency,0
+F_BO,Soybean Oil,Agriculture,1
+F_BP,British Pound,Currency,0
+F_C,Corn,Agriculture,1
+F_CC,Cocoa,Agriculture,1
+F_CD,Canadian Dollar,Currency,0
+F_CL,WTI Crude Oil,Energy,1
+F_CT,Cotton,Agriculture,1
+F_DX,US Dollar Index,Currency,1
+F_EC,Euro FX,Currency,0
+F_ED,Eurodollars,Interest Rate,0
+F_ES,E-mini S&P 500 Index,Index,1
+F_FC,Feeder Cattle,Agriculture,1
+F_FV,5-year Treasury Note,Bond,1
+F_GC,Gold,Metal,1
+F_HG,Copper,Metal,1
+F_HO,Heating Oil,Energy,1
+F_JY,Japanese Yen,Currency,0
+F_KC,Coffee,Agriculture,1
+F_LB,Lumber,Agriculture,1
+F_LC,Live Cattle,Agriculture,1
+F_LN,Lean Hogs,Agriculture,1
+F_MD,E-mini S&P 400,Index,1
+F_MP,Mexican Peso,Currency,0
+F_NG,Natural Gas,Energy,1
+F_NQ,E-mini Nasdaq 100 Index,Index,1
+F_NR,Rough Rice,Agriculture,1
+F_O,Oats,Agriculture,1
+F_OJ,Orange Juice,Agriculture,1
+F_PA,Palladium,Metal,1
+F_PL,Platinum,Metal,1
+F_RB,Gasoline,Energy,1
+F_RU,Russell 2000,Index,1
+F_S,Soybeans,Agriculture,1
+F_SB,Sugar,Agriculture,1
+F_SF,Swiss Franc,Currency,0
+F_SI,Silver,Metal,1
+F_SM,Soybean Meal,Agriculture,1
+F_TU,2-year Treasury Note,Bond,1
+F_TY,10-year Treasury Note,Bond,1
+F_US,30-year Treasury Bond,Bond,1
+F_W,Wheat,Agriculture,1
+F_XX,Dow Jones STOXX 50,Index,1
+F_YM,E-mini Dow Jones Industrial Average,Index,1
+F_AX,DAX,Index,0
+F_CA,CAC40,Index,0
+F_DT,EURO Bond,Bond,0
+F_UB,EURO Bobl,Bond,0
+F_UZ,EURO Schatz,Bond,0
+F_GS,10-Year Long Gilt,Bond,0
+F_LX,FTSE 100 Index,Index,0
+F_SS,3-Month Short Sterling,Interest Rate,0
+F_DL,Milk Class III,Agriculture,1
+F_ZQ,30-Day Fed Funds,Interest Rate,1
+F_VX,Volatilty Index,Index,1
+F_AE,AEX Index,Index,0
+F_BG,Gas Oil,Energy,1
+F_BC,Brent Crude Oil,Energy,1
+F_LU,Rotterdam Coal,Energy,1
+F_DM,MDAX Index,Index,0
+F_AH,Bloomberg Commodity Index,Index,1
+F_CF,10y Swiss Note,Bond,0
+F_DZ,TechDAX,Index,0
+F_FB,DJ Stoxx Bank 600,Index,0
+F_FL,Chicago Ethanol,Energy,1
+F_FM,Stoxx Europe Mid 200,Index,0
+F_FP,OMX Helsinki 25,Index,0
+F_FY,Stoxx Europe 600,Index,0
+F_GX,Euro BUXL,Bond,0
+F_HP,Natural Gas Penultimate,Energy,1
+F_LR,Brazilian Real,Currency,0
+F_LQ,Newcastle Coal,Energy,1
+F_ND,New Zealand Dollar,Currency,0
+F_NY,Nikkei 225,Index,0
+F_PQ,PSI20,Index,0
+F_RR,Russian Ruble,Currency,0
+F_RF,EURO FX/Swiss Franc,Currency,0
+F_RP,EURO FX/British Pound,Currency,0
+F_RY,EURO FX/Japanese Yen,Currency,0
+F_SH,Swiss Mid Cap,Index,0
+F_SX,Swiss Market,Index,0
+F_TR,South African Rand,Currency,0
+F_EB,3-Month EuriBor,Interest Rate,0
+F_VF,5-Year Euro Swapnote,Bond,0
+F_VT,10-Year Euro Swapnote,Bond,0
+F_VW,2-Year Euro Swapnote,Bond,0
+F_GD,Goldman Sachs Commodity Index,Index,1
+F_F,3-Month EuroSwiss,Interest Rate,0
