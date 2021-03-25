@@ -22,3 +22,13 @@ keys = (
         USA_PP, USA_PPIC, USA_RSM, USA_RSY, USA_RSEA, USA_RFMI, USA_TVS, USA_UNR,\
         USA_WINV'
 ).replace(' ', '').split(',')
+
+# industry-specific macroeconomic indicators
+commodityIndicators = ['USA_CFNAI', 'USA_NFP', 'USA_CCPI']
+industryIndicators = {'Bond': ['USA_CFNAI', 'USA_CPI', 'USA_UNR'], \
+                      'Agriculture': commodityIndicators, \
+                      'Energy': commodityIndicators, \
+                      'Metal': commodityIndicators, \
+                      'Currency': ['USA_NFP', 'USA_CPI', 'USA_UNR', 'USA_IPMOM'], \
+                      'Interest Rate': ['USA_CPICM', 'USA_UNR', 'USA_LEI'], \
+                      'Index': ['USA_CFNAI']}
