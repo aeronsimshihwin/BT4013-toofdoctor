@@ -78,7 +78,11 @@ def VPT(close, volume):
   Function reference: https://technical-analysis-library-in-python.readthedocs.io/en/latest/ta.html#ta.volume.VolumePriceTrendIndicator
   Info: https://www.tradingtechnologies.com/xtrader-help/x-study/technical-indicator-definitions/price-volume-trend-pvt/
   """
-  return VolumePriceTrendIndicator(close, volume).volume_price_trend().tolist()
+#   close_prev = close.shift(1)
+#   vpt = volume * (close - close_prev) / close_prev
+#   vpt[0] = 0
+#   vpt_final = vpt.shift(1, fill_value=0) + vpt
+  return VolumePriceTrendIndicator(close, volume).volume_price_trend().tolist() # vpt_final.tolist()
 
 def BBands(close, periods):
   """
