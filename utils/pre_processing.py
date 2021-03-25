@@ -48,8 +48,7 @@ def long_short(data: pd.DataFrame, old_var, new_var, periods:int=1):
     data[new_var] = data[old_var].apply(lambda x: np.nan if math.isnan(x) else 1 if x > 0 else -1)
     return data
 
-def generate_X_vars(future, linearise=False, tech_indicators=["MACD", "RSI14", "VPT"], \
-                    macro_indicators=False, macro_indicators_var='PCT'):
+def generate_X_vars(future, linearise=False, tech_indicators=["MACD", "RSI14", "VPT"], macro_indicators=False):
     X_vars = tech_indicators
 
     # linearise only if price trends are more exponential than linear
@@ -61,10 +60,8 @@ def generate_X_vars(future, linearise=False, tech_indicators=["MACD", "RSI14", "
 
     # get macro indicators corresponding to future's industry
     future_ind = FUTURE_INDUSTRY.loc[future]
-    industry_indicators = utils.industryIndicators[future_ind['Type']]
     if macro_indicators and (future_ind['UnitedStates'] == 1):
-        macro_indicators_lst = [x for x in industry_indicators]
-        X_vars.extend(macro_indicators_lst)
+        X_vars.extend(utils.industryIndicators[future_ind['Type']])
         
     return X_vars
     
