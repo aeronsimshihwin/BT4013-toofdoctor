@@ -82,7 +82,7 @@ def VPT(close, volume):
 #   vpt = volume * (close - close_prev) / close_prev
 #   vpt[0] = 0
 #   vpt_final = vpt.shift(1, fill_value=0) + vpt
-  return VolumePriceTrendIndicator(close, volume).volume_price_trend().tolist() # vpt_final.tolist()
+  return VolumePriceTrendIndicator(close, volume, fillna=True).volume_price_trend().tolist() # vpt_final.tolist()
 
 def BBands(close, periods):
   """

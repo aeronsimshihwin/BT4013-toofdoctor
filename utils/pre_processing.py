@@ -93,7 +93,7 @@ def prepare_data(future):
     df = utils.BBands(df, input='CLOSE', output=['BBANDS_HIGH','BBANDS_LOW'], periods=14)
     df = utils.CCI(df, input=['HIGH', 'LOW', 'CLOSE'], output='CCI', periods=20)
 
-    df = df.replace(np.inf, np.nan)
+    # df = df.replace(np.inf, np.nan)
     df = df.fillna(method="ffill")
 
     for key in utils.keys:
