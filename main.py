@@ -186,7 +186,7 @@ def mySettings():
     settings= {}
     settings['markets']  = utils.futuresAllList
     settings['beginInSample'] = '20190123'
-    settings['endInSample'] = '20210131' # '20210331'
+    settings['endInSample'] = '20210331'
     settings['lookback']= 504
     settings['budget']= 10**6
     settings['slippage']= 0.05
