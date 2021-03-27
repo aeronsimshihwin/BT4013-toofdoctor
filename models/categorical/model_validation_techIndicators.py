@@ -93,8 +93,8 @@ def walk_forward_techIndicators(
     metrics = ["accuracy", "opp_cost"]
     results = pd.DataFrame(index=windows.index, columns=metrics)
     for i in windows.index:
-        train_mask = (windows.loc[i, 'train_start'] >= X.index) & (X.index < windows.loc[i, 'train_end'])
-        val_mask = (windows.loc[i, 'validation_start'] >= X.index) & (X.index < windows.loc[i, 'validation_end'])
+        train_mask = (X.index >= windows.loc[i, 'train_start']) & (X.index < windows.loc[i, 'train_end'])
+        val_mask = (X.index >= windows.loc[i, 'validation_start']) & (X.index < windows.loc[i, 'validation_end'])
         X_train, X_val = X.loc[train_mask].to_numpy(), X.loc[val_mask].to_numpy()
         y_train, y_val = y.loc[train_mask].to_numpy(), y.loc[val_mask].to_numpy()
         cost_val = cost_weight.loc[val_mask].to_numpy()
@@ -108,24 +108,23 @@ def walk_forward_techIndicators(
             y_pred = y_pred[numOfInvalids:]
             y_val = y_val[numOfInvalids:]
         
-        #TODO
-        # y_pred has many zeros because it isn't that direct to long/short.
-        # Whereas y_val indicates easily when to long/short.
-        # Alternative: Remove all the zeros in y_pred and the corresponding long/short in y_val
-        # Compute accuracy and opp cost.
+        # Method to compute accuracy score:
+        # 1) Remove all zeros in y_pred and the corresponding values at the respective indexes of y_val.
+        # 2) Call accuracy_score(y_pred, y_val)
+        # Reason: y_pred has many zeros because technical indicator strategies do not produce simply long/short.
 
-        # predS = pd.Series(y_pred)
-        # valS = pd.Series(y_val)
-        # cols = {0: 'Pred', 1: 'Val'}
-        # df = pd.concat([predS, valS], axis=1)
-        # df.rename(columns = cols, inplace = True)
-        # for index, row in df.iterrows():
-        #     if row['Pred']==0 or row['Val']==0:
-        #         df.drop(index, inplace=True)
-        # y_pred = df['Pred']
-        # y_val = df['Val']
+        predS = pd.Series(y_pred)
+        valS = pd.Series(y_val)
+        cols = {0: 'Pred', 1: 'Val'}
+        df = pd.concat([predS, valS], axis=1)
+        df.rename(columns = cols, inplace = True)
+        for index, row in df.iterrows():
+            if row['Pred']==0 or row['Val']==0:
+                df.drop(index, inplace=True)
+        y_pred = df['Pred']
+        y_val = df['Val']
 
-        results.loc[i, "accuracy"] = accuracy_score(pd.Series(y_val), pd.Series(y_pred))
+        results.loc[i, "accuracy"] = accuracy_score(y_pred, y_val)
 
         # results.loc[i, "opp_cost"] = utils.opportunity_cost(pd.Series(y_val), pd.Series(y_pred), pd.Series(cost_val))
         mask = (pd.Series(y_val) != pd.Series(y_pred)).apply(lambda x: int(x))
