@@ -11,6 +11,7 @@ saved_models/.DS_Store
 # Data files
 tickerData/
 model_metrics/
+meta_model_predictions/
 model_predictions/numeric/arima/**/
 # saved_models/numeric/arima/**/
 windows.txt

@@ -25,8 +25,9 @@ keys = (
 
 # industry-specific macroeconomic indicators
 commodityIndicators = ['USA_CFNAI', 'USA_NFP', 'USA_CCPI']
+agricultureIndicators = ['USA_CFNAI', 'USA_NFP', 'USA_CCPI', 'USA_PP']
 industryIndicators = {'Bond': ['USA_CFNAI', 'USA_CPI', 'USA_UNR'], \
-                      'Agriculture': commodityIndicators, \
+                      'Agriculture': agricultureIndicators, \
                       'Energy': commodityIndicators, \
                       'Metal': commodityIndicators, \
                       'Currency': ['USA_NFP', 'USA_CPI', 'USA_UNR', 'USA_IPMOM'], \

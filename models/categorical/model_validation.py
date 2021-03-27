@@ -92,8 +92,8 @@ def walk_forward(
     metrics = ["accuracy", "opp_cost"]
     results = pd.DataFrame(index=windows.index, columns=metrics)
     for i in windows.index:
-        train_mask = (windows.loc[i, 'train_start'] >= X.index) & (X.index < windows.loc[i, 'train_end'])
-        val_mask = (windows.loc[i, 'validation_start'] >= X.index) & (X.index < windows.loc[i, 'validation_end'])
+        train_mask = (X.index >= windows.loc[i, 'train_start']) & (X.index < windows.loc[i, 'train_end'])
+        val_mask = (X.index >= windows.loc[i, 'validation_start']) & (X.index < windows.loc[i, 'validation_end'])
         X_train, X_val = X.loc[train_mask].to_numpy(), X.loc[val_mask].to_numpy()
         y_train, y_val = y.loc[train_mask].to_numpy(), y.loc[val_mask].to_numpy()
         cost_val = cost_weight.loc[val_mask].to_numpy()
