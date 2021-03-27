@@ -33,7 +33,9 @@ def add_stationary(data: pd.DataFrame, old_col, new_col):
 
 def percentage_diff(data: pd.DataFrame, old_var, new_var, periods:int=1):
     data[new_var] = data[old_var].pct_change(periods=periods).fillna(0)
-    data[data[new_var] == np.inf] = 0
+    # replace inf with nan, then fill na with 0
+    data[new_var] = data[new_var].replace(np.inf, np.nan)
+    data[new_var] = data[new_var].fillna(0)
     return data
 
 def diff(data: pd.DataFrame, old_var, new_var, periods:int=1):
@@ -74,6 +76,8 @@ def prepare_data(future):
     # replace nan and 0 values with previous day ffill
     df = df.replace(0, np.nan)
     df = df.fillna(method="ffill")
+
+    # # There will be no zero and np.nan values in CLOSE and VOL up to this point.
     
     # ARIMA: Velocity and acceleration terms for linearized data
     df = linearize(df, old_var='CLOSE', new_var='CLOSE_LINEAR')
@@ -94,6 +98,8 @@ def prepare_data(future):
     # CATEGORICAL: y variable (long/short)
     df = long_short(df, old_var='CLOSE_DIFF', new_var='LONG_SHORT')
 
+    # #  LONG_SHORT is a binary categorical variable: 1 for LONG, -1 for SHORT.
+
     # TECHNICAL INDICATORS
     df = utils.SMA(df, input='CLOSE', output='SMA20', periods=20)
     df = utils.EMA(df, input='CLOSE', output='EMA20', periods=20)
@@ -107,6 +113,7 @@ def prepare_data(future):
     df = df.replace(np.inf, np.nan)
     df = df.fillna(method="ffill")
 
+    # MACROECONOMIC INDICATORS
     for key in utils.keys:
         key_df = pd.read_csv(f"tickerData/{key}.txt", parse_dates=["DATE"])
         key_df = key_df.set_index("DATE")
