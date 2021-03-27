@@ -44,7 +44,6 @@ for name, model in SAVED_MODELS.items():
         except:
             raise FileNotFoundError(f'No saved {name} for {future}!')
 
-
 def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     USA_HRS, USA_BOT, USA_BC, USA_BI, USA_CU, USA_CF, USA_CHJC, USA_CFNAI,\
     USA_CP, USA_CCR, USA_CPI, USA_CCPI, USA_CINF, USA_DFMI, USA_DUR,\
@@ -107,7 +106,6 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
         df = df.fillna(method="ffill")
 
         data[future] = df
-
     # Economic indicators
     indicators = pd.DataFrame(
         data = np.hstack([
@@ -124,7 +122,7 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
         index = date_index,
         columns = utils.keys, 
     )
-    indicators = indicators.ffill()
+    indicators = indicators.fillna(method="ffill")
     indicators = utils.percentage_diff(indicators, 
         old_var = utils.keys, 
         new_var = [key+"_PCT" for key in utils.keys],
@@ -132,21 +130,14 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     indicators = utils.diff(
         indicators, 
         old_var = utils.keys, 
-        new_var = [key+"_PCT" for key in utils.keys],
+        new_var = [key+"_DIFF" for key in utils.keys],
     )
-    
-    for future, df in data.items():
-        data[future] = df.join(indicators)
 
-    # for key, val in zip(utils.keys, vals):
-    #     for i, future in enumerate(utils.futuresList):
-    #         df = data[future]
-    #         df[key] = pd.Series(data=val.flatten(), index=date_index)
-    #         # forward fill to replace nonexistent values with previous values
-    #         df[key] = df[key].fillna(method="ffill")
-    #         # backfill to fill first 2 nan values
-    #         df = utils.percentage_diff(df, old_var=key, new_var=key+"_PCT")
-    #         df = utils.diff(df, old_var=key, new_var=key+"_DIFF")
+    for future, df in data.items():
+        future_df = data[future].join(indicators)
+        future_df = future_df.fillna(method="ffill")
+        future_df = future_df.fillna(0)
+        data[future] = future_df
 
     ### Technical indicator strategy output ###
     ### Added here temporarily. Aeron to get help from Mitch ###
@@ -186,10 +177,6 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     settings['sign'].append(sign)
     settings['magnitude'].append(magnitude)
 
-    # Update persistent data across runs
-    settings['sign'].append(sign)
-    settings['magnitude'].append(magnitude)
-
     # Yay!
     return position, settings
 
@@ -199,7 +186,7 @@ def mySettings():
     settings= {}
     settings['markets']  = utils.futuresAllList
     settings['beginInSample'] = '20190123'
-    settings['endInSample'] = '20210331'
+    settings['endInSample'] = '20210131' # '20210331'
     settings['lookback']= 504
     settings['budget']= 10**6
     settings['slippage']= 0.05

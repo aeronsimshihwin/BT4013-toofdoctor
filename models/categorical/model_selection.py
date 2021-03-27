@@ -4,6 +4,7 @@ import numpy as np
 import pickle
 import math
 from datetime import date
+from sklearn.linear_model import LogisticRegression
 
 def save_model(path, metric, model_fn, model_wrapper, future, X_vars, y_var, ext_path="csv",\
     train_start=date(2019,1,1), train_end=date(2021,1,1)):
@@ -51,11 +52,9 @@ def save_model(path, metric, model_fn, model_wrapper, future, X_vars, y_var, ext
         model = model_fn(**params_dict)
         fitted = model.fit(X_train, y_train)
         save = model_wrapper(model=fitted, X=X_vars, y=y_var)
+        with open(f'saved_models/categorical/{path}/{future}.p', 'wb') as f:
+            pickle.dump(save, f)
+        return (save, X_train, y_train, params_dict)
     except:
-        print(params_dict)
-        return (X_train, y_train)
-    
-    with open(f'saved_models/categorical/{path}/{future}.p', 'wb') as f:
-        pickle.dump(save, f)
-
-    return save
+        print("ERROR")
+        return ("none", "none", "none", "none")

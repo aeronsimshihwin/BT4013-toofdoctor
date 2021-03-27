@@ -4,12 +4,11 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 
-SAVED_DIR = "/saved_models/categorical/logreg"
 FUTURES_LIST = utils.futuresList
 
 class LogRegWrapper:
-    SAVED_DIR = 'saved_models/categorical/logreg/perc'
-    
+    SAVED_DIR = "saved_models/categorical/logreg/pct_tech_macro"
+
     def __init__(self, model=None, y=None, X=None):
         self.model = model
         self.get_y = y # Extracts y from data[future]
@@ -28,6 +27,7 @@ class LogRegWrapper:
             y_pred_norm_long = max(0,y_pred_norm) # long only
             return y_pred_pos # returns only last value
         except:
+            print("invalid")
             return 0 # input invalid
 
     def _y_X(self, data, future):
@@ -39,8 +39,8 @@ class LogRegWrapper:
 
         # get intersection of all dataframes
         common_index = X.index.intersection(y.index)
-        X = X[X.index.isin(common_index)].to_numpy()
-        y = y[y.index.isin(common_index)].to_numpy(np.dtype(int))
+        X = X[X.index.isin(common_index)]
+        y = y[y.index.isin(common_index)]
 
         return y, X
 
