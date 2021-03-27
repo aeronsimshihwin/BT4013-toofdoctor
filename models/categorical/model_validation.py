@@ -99,7 +99,7 @@ def walk_forward(
         cost_val = cost_weight.loc[val_mask].to_numpy()
 
         fitted = model.fit(X_train, y_train)
-        y_pred = fitted.predict(X_val)
+        y_pred = fitted.predict(X_val) 
         results.loc[i, "accuracy"] = accuracy_score(pd.Series(y_val), pd.Series(y_pred))
         results.loc[i, "opp_cost"] = utils.opportunity_cost(pd.Series(y_val), pd.Series(y_pred), pd.Series(cost_val))
 
