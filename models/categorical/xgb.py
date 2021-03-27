@@ -1,9 +1,12 @@
-from datetime import datetime
-
 import utils
+from datetime import datetime
 import numpy as np
+import pandas as pd
 import xgboost as xgboost
 from xgboost import XGBClassifier
+
+SAVED_DIR = "/saved_models/categorical/xgb"
+FUTURES_LIST = utils.futuresList
 
 class XGBWrapper:
     SAVED_DIR = 'saved_models/categorical/xgb/perc'
@@ -18,58 +21,32 @@ class XGBWrapper:
             self._fit(*self._y_X(data, future), **kwargs)
 
     def predict(self, data, future, **kwargs):
-        return self._predict(*self._y_X(data, future), **kwargs)
-        # try:
-        #     return self._predict(*self._y_X(data, future), **kwargs)
-        # except:
-        #     return np.nan
+        try:
+            y, X = self._y_X(data, future)
+            y_pred = self.model.predict_proba(X)
+            y_pred_pos = y_pred[:, 1][-1] # get probability of class 1
+            y_pred_norm = y_pred_pos - 0.5 # normalise to include long and short
+            y_pred_norm_long = max(0,y_pred_norm) # long only
+            return y_pred_pos # returns only last value
+        except:
+            return 0 # input invalid
 
     def _y_X(self, data, future):
         data_df = data[future]
-        # remove na and zero values
-        data_df = data_df[(data_df.VOL != 0) & (data_df.CLOSE != 0)]
-        data_df = data_df.dropna(axis=0)
-        # generate perc close and perc vol (features)
-        X = utils.generate_X_df([data_df.CLOSE, data_df.VOL], ["perc", "perc"])
-        # generate target
-        y = utils.generate_y_cat(data_df.CLOSE)
-        # drop na
-        X = X.dropna(axis=0)
-        y = y.dropna(axis=0)
+        
+        # slice only relevant data
+        X = data_df[self.get_X]
+        y = data_df[self.get_y]
+
         # get intersection of all dataframes
         common_index = X.index.intersection(y.index)
         X = X[X.index.isin(common_index)].to_numpy()
         y = y[y.index.isin(common_index)].to_numpy(np.dtype(int))
+
         return y, X
 
     def _fit(self, y, X, **kwargs):
-        # model = XGBClassifier()
-        model = XGBClassifier(booster='gbtree', gamma=0, learning_rate=0.3, max_depth=9, n_estimators=100)
-        X_train = np.delete(X, len(X)-1, 0)
-        y_train = np.delete(y, len(y)-1, 0)
-        fitted = model.fit(X_train, y_train)
-        self.model = fitted
-        # if self.model is None:
-        #     model = XGBClassifier(**kwargs)
-        #     fitted = model.fit(X, y)
-        #     self.model = fitted
-    
-    def _predict(self, y, X, **kwargs):
-        self._fit(y, X, **kwargs)
-        X_test = X[-1]
-        y_pred = self.model.predict_proba(X_test.reshape(1, -1)) # returns [P(-1), P(1)]
-        y_pred_pos = y_pred[0][1] # return probability of class 1
-        y_pred_norm = y_pred_pos - 0.5 # normalise, centre about zero
-        return y_pred_pos ## to review this
-
-# model.fit(X)
-# class model:
-#     initialise()
-#       X_vars = ""
-#       y_var = ""
-#       cost = ""
-#     fit()
-#     predict()
-#         predict
-#         process predict
-#         return predict
+        if self.model is None:
+            model = LogisticRegression(**kwargs)
+            fitted = model.fit(X, y)
+            self.model = fitted
