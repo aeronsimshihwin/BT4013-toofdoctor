@@ -20,6 +20,6 @@ class fourCandleHammerWrapper:
         # slice only relevant data
         X = data_df[self.get_X]
 
-        strategy_df = utils.fourCandleHammer(X, self.model_params['N'], self.model_params['highFactor'], self.model_params['lowFactor'])
+        strategy_df = utils.fourCandleHammer(X, self.model_params['N'], self.model_params['highFactor'], self.model_params['lowFactor'], future, self.model_params['macro_analysis'])
         y_pred = strategy_df[self.get_y][-1]
         return y_pred

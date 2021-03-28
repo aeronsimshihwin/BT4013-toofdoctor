@@ -118,7 +118,7 @@ def gradient(lst):
         if (not math.isnan(val)) and (val != 0):
             return (lst[-1] - val)/val
 
-def fourCandleHammer(df, N, highFactor, lowFactor, futures, macro_analysis=False):
+def fourCandleHammer(df, N, highFactor, lowFactor, futures, macro_analysis):
     """
     @param: df A Dataframe object containing relevant info of a futures.
     @param: N The number of most recent days to scan through and find max and min price. For tuning purposes.
@@ -187,12 +187,14 @@ def fourCandleHammer(df, N, highFactor, lowFactor, futures, macro_analysis=False
 
     return df
 
-def ema_strategy(df, shortTermDays, longTermDays, NDays):
+def ema_strategy(df, shortTermDays, longTermDays, NDays, futures, macro_analysis):
     """
     @param: df A Dataframe object containing relevant info of a futures.
     @param: shortTermDays The number of days to calculate the short term EMA. For tuning purposes.
     @param: longTermDays The number of days to calculate the long term EMA. For tuning purposes.
     @param: NDays The number of days to compute trend. For tuning purposes.
+    @param: futures A string object to identify what futures it is.
+    @param: macro_analysis A boolean object to indicate whether we are using macroeconomic indicator as our analysis.
     Returns dataframe, updated with long/short for each day.
     Strategy reference: https://tradingstrategyguides.com/exponential-moving-average-strategy/#:~:text=Many%20traders%20use%20exponential%20moving,level%20to%20execute%20your%20trade
     """
@@ -240,9 +242,15 @@ def ema_strategy(df, shortTermDays, longTermDays, NDays):
                         if retested:
                             if (close[k+1] > close[k]) and (close[k+1] > EMAshort[k+1]):
                                 retested = False
-                    if num_retests >= 3: 
-                        long_short.append(1) # If there were at least 3 retests, it signals a LONG.
-                        output = True
+                    if num_retests >= 3: # If there were at least 3 retests, it signals a LONG.
+                        if macro_analysis == True:
+                            df2 = df.iloc[window_start:window_start+NDays+1, :]
+                            if analyse_macroeconomic_indicators(df2, futures, 1):
+                                long_short.append(1)
+                                output = True
+                        else:
+                            long_short.append(1)
+                            output = True
                 
         elif (gradient(EMAshort) < 0) and (gradient(EMAlong) < 0): # downtrend
             for i in range(len(EMAshort)-1, 0, -1):
@@ -265,9 +273,15 @@ def ema_strategy(df, shortTermDays, longTermDays, NDays):
                             if retested:
                                 if (close[k+1] < close[k]) and (close[k+1] < EMAshort[k+1]):
                                     retested = False
-                    if num_retests >= 1: 
-                        long_short.append(-1) # If there was exactly 1 retest, it signals a SHORT.
-                        output = True
+                    if num_retests >= 1: # If there was exactly 1 retest, it signals a SHORT.
+                        if macro_analysis == True:
+                            df2 = df.iloc[window_start:window_start+NDays+1, :]
+                            if analyse_macroeconomic_indicators(df2, futures, -1):
+                                long_short.append(-1)
+                                output = True
+                        else:
+                            long_short.append(-1)
+                            output = True
 
         if output == False:
             long_short.append(0) # no long/short
@@ -283,12 +297,14 @@ def ema_strategy(df, shortTermDays, longTermDays, NDays):
 
     return df
 
-def swing_setup(df, shortTermDays, longTermDays, NDays):
+def swing_setup(df, shortTermDays, longTermDays, NDays, futures, macro_analysis):
     """
     @param: df A Dataframe object containing relevant info of a futures.
     @param: shortTermDays The number of days to calculate the short term SMA. For tuning purposes.
     @param: longTermDays The number of days to calculate the long term SMA. For tuning purposes.
     @param: NDays The number of days to compute trend. For tuning purposes.
+    @param: futures A string object to identify what futures it is.
+    @param: macro_analysis A boolean object to indicate whether we are using macroeconomic indicator as our analysis.
     Returns dataframe, updated with long/short for each day.
     """
     close_temp = df['CLOSE']
@@ -325,9 +341,16 @@ def swing_setup(df, shortTermDays, longTermDays, NDays):
                             if (close[i] > SMAlong[i]): # closing price goes above SMAlong
                                 trigger_price = high[i] * 1.002
                                 if low[-1] >= trigger_price:
-                                    long_short.append(1)
-                                    output = True
-                                    break
+                                    if macro_analysis == True:
+                                        df2 = df.iloc[window_start:window_start+NDays+1, :]
+                                        if analyse_macroeconomic_indicators(df2, futures, 1):
+                                            long_short.append(1)
+                                            output = True
+                                            break
+                                    else:
+                                        long_short.append(1)
+                                        output = True
+                                        break
         elif (gradient(SMAshort) < 0) and (gradient(SMAlong) < 0): # Sloping down MAs
             for i in range(len(SMAshort)-2, len(SMAshort)-7, -1):
                 if (SMAshort[i] < SMAlong[i]): # SMAshort below SMAlong
@@ -336,9 +359,16 @@ def swing_setup(df, shortTermDays, longTermDays, NDays):
                             if (close[i] < SMAlong[i]): # closing price goes below SMAlong
                                 trigger_price = low[i] * 0.998
                                 if high[-1] <= trigger_price:
-                                    long_short.append(-1)
-                                    output = True
-                                    break
+                                    if macro_analysis == True:
+                                        df2 = df.iloc[window_start:window_start+NDays+1, :]
+                                        if analyse_macroeconomic_indicators(df2, futures, -1):
+                                            long_short.append(-1)
+                                            output = True
+                                            break
+                                    else:
+                                        long_short.append(-1)
+                                        output = True
+                                        break
 
         if output == False:
             long_short.append(0)

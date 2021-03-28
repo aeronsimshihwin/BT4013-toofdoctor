@@ -20,6 +20,6 @@ class emaStrategyWrapper:
         # slice only relevant data
         X = data_df[self.get_X]
         
-        strategy_df = utils.ema_strategy(X, self.model_params['shortTermDays'], self.model_params['longTermDays'], self.model_params['NDays'])
+        strategy_df = utils.ema_strategy(X, self.model_params['shortTermDays'], self.model_params['longTermDays'], self.model_params['NDays'], future, self.model_params['macro_analysis'])
         y_pred = strategy_df[self.get_y][-1]
         return y_pred
