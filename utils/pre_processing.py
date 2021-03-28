@@ -136,3 +136,17 @@ def generate_X_y(df:pd.DataFrame, X_vars=[], y_var="LONG_SHORT", start_date=date
     y_df = y_df[y_df.index.isin(common_index)]
     
     return X_df, y_df
+
+def generate_macroeconomic_indicators_techIndicators(future, macro_indicators=False):
+    '''
+    To generate the relevant macroeconomic indicators needed for the specific futures industry.
+    Function to be called during implementation of trading strategies using technical indicators.
+    '''
+    X_vars = []
+
+    # get macro indicators corresponding to future's industry
+    future_ind = FUTURE_INDUSTRY.loc[future]
+    if macro_indicators and (future_ind['UnitedStates'] == 1):
+        X_vars.extend(utils.industryIndicators[future_ind['Type']])
+        
+    return X_vars
