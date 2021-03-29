@@ -8,7 +8,10 @@ from models.categorical import (
     XGBWrapper,
     RFWrapper,
     ArimaEnsemble,
-    LogRegWrapper
+    LogRegWrapper,
+    fourCandleHammerWrapper,
+    emaStrategyWrapper,
+    swingSetupWrapper
 )
 from models.numeric import (
     Arima,
@@ -30,7 +33,10 @@ SAVED_MODELS = {
     # 'rf': RFWrapper,
     # 'xgb': XGBWrapper,
     # 'arima+xgb': ArimaEnsemble,
-    'logreg': LogRegWrapper
+    # 'logreg': LogRegWrapper,
+    'fourCandleHammer': fourCandleHammerWrapper,
+    # 'emaStrategy': emaStrategyWrapper,
+    # 'swing': swingSetupWrapper
 }
 
 LOADED_MODELS = {}
@@ -137,7 +143,7 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
         future_df = data[future].join(indicators)
         future_df = future_df.fillna(method="ffill")
         future_df = future_df.fillna(0)
-        data[future] = future_df   
+        data[future] = future_df
     
     # Fit and predict
     prediction = pd.DataFrame(index=utils.futuresList)
@@ -167,8 +173,8 @@ def mySettings():
     ''' Define your trading system settings here '''
     settings= {}
     settings['markets']  = utils.futuresAllList
-    settings['beginInSample'] = '20181020' #'20190123'
-    settings['endInSample'] = '20201231' #'20210331'
+    settings['beginInSample'] = '20190123'
+    settings['endInSample'] = '20210331'
     settings['lookback']= 504
     settings['budget']= 10**6
     settings['slippage']= 0.05
