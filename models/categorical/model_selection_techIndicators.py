@@ -72,6 +72,11 @@ def save_meta_predictions_techIndicators(
     # convert metrics txt file to pd.DataFrame
     metrics_df = pd.read_csv(f'model_metrics/categorical/{path}{future}.{ext_path}')
 
+    # Accuracy score might be null as strategy did not predict long or short at all.
+    # In that case, use opp_cost_SMA.
+    if metrics_df[metric].isnull().sum() == metrics_df.shape[0]:
+        metric = 'opp_cost_SMA'
+
     # set objective based on input metric
     if metric[:8] == 'opp_cost':
         # select the row with lowest cost
@@ -140,6 +145,11 @@ def save_model_techIndicators(path, metric, model_wrapper, future, X_vars, y_var
 
     # convert metrics txt file to pd.DataFrame
     metrics_df = pd.read_csv(f'model_metrics/categorical/{path}/{future}.{ext_path}')
+
+    # Accuracy score might be null as strategy did not predict long or short at all.
+    # In that case, use opp_cost_SMA.
+    if metrics_df[metric].isnull().sum() == metrics_df.shape[0]:
+        metric = 'opp_cost_SMA'
 
     # set objective based on input metric
     if metric[:8] == 'opp_cost':
