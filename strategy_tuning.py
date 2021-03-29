@@ -27,6 +27,7 @@ from strategy import (
     fixed_threshold_strategy, 
     perc_threshold_strategy,
     futures_only,
+    futures_hold,
     cash_and_futures,
 )
 
@@ -39,6 +40,11 @@ from tqdm import tqdm
 # Must be imported last
 from main import LOADED_MODELS
 
+strategies = {
+    'futures_only': futures_only,
+    'futures_hold': futures_hold,
+    'cash_and_futures': cash_and_futures
+}
 def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     USA_HRS, USA_BOT, USA_BC, USA_BI, USA_CU, USA_CF, USA_CHJC, USA_CFNAI,\
     USA_CP, USA_CCR, USA_CPI, USA_CCPI, USA_CINF, USA_DFMI, USA_DUR,\
@@ -137,7 +143,7 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     # Fit and predict
     prediction = pd.DataFrame(index=utils.futuresList)
     for (name, future), model in tqdm(settings['models'].items()):
-        prediction.loc[future, name] = model.predict(data, future, threshold=float(settings['threshold']))
+        prediction.loc[future, name] = model.predict(data, future, threshold=settings['threshold'])
     sign = utils.sign(prediction)
     magnitude = utils.magnitude(prediction)
     
@@ -151,6 +157,7 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     # Update persistent data across runs
     settings['sign'].append(sign)
     settings['magnitude'].append(magnitude)
+    settings['previous_position'] = position
 
     # Yay!
     return position, settings
@@ -168,10 +175,14 @@ def mySettings():
     # Stuff to persist
     settings['models'] = LOADED_MODELS
     with open('utils/strategy_tuning.txt','r') as f:
-        threshold = f.readline()
+        threshold = float(f.readline())
+        strategy = f.readline()
+
     settings['threshold'] = threshold
+    settings['strategy'] = strategy
     settings['sign'] = []
     settings['magnitude'] = []
+    settings['previous_position'] = []
 
     return settings
 
@@ -180,19 +191,26 @@ if __name__ == '__main__':
     import quantiacsToolbox
     
     model = 'logreg'
-    thresholds = [round(0.05 * x, 2) for x in range(4, 17)]
+    type = 'pct_tech_macro'
+    thresholds = [round(0.05 * x, 2) for x in range(6, 15)]
+    threshold_results = []
     sharpe_results = []
-    
-    for threshold in tqdm(thresholds):
-        with open('utils/strategy_tuning.txt', 'w') as file:
-            file.write(str(threshold))
-        # retrieve sharpe
-        results = quantiacsToolbox.runts(__file__, plotEquity=False)
-        sharpe = results["stats"]["sharpe"]
-        sharpe_results.append(sharpe)
+    strategy_results = []
+
+    for strategy in ['futures_only', 'futures_hold_pos', 'cash_and_futures']:
+        for threshold in tqdm(thresholds):
+            with open('utils/strategy_tuning.txt', 'w') as file:
+                file.write(str(threshold) + '\n' + strategy)
+
+            # retrieve sharpe
+            results = quantiacsToolbox.runts(__file__, plotEquity=False)
+            sharpe = results["stats"]["sharpe"]
+            sharpe_results.append(sharpe)
+            strategy_results.append(strategy)
+            threshold_results.append(threshold)
     
     # save results
-    results_df = pd.DataFrame({'threshold': thresholds, 'sharpe': sharpe_results})
-    results_df.to_csv(f'model_metrics/strategy_threshold/{model}.csv')
+    results_df = pd.DataFrame({'strategy': strategy_results, 'threshold': threshold_results, 'sharpe': sharpe_results})
     best_result_df = results_df.loc[results_df["sharpe"] == max(results_df["sharpe"])].reset_index(drop=True)
     print(best_result_df)
+    results_df.to_csv(f'model_metrics/strategy_threshold/{model}_{type}.csv')

@@ -167,7 +167,7 @@ def mySettings():
     ''' Define your trading system settings here '''
     settings= {}
     settings['markets']  = utils.futuresAllList
-    settings['beginInSample'] = '20180920' #'20190123'
+    settings['beginInSample'] = '20181020' #'20190123'
     settings['endInSample'] = '20201231' #'20210331'
     settings['lookback']= 504
     settings['budget']= 10**6
