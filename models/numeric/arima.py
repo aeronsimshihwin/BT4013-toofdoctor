@@ -21,7 +21,6 @@ class Arima:
         if self.model is None:
             self.model = pm.auto_arima(y, **kwargs)
         else:
-            print(y.tail(20))
             self.model.fit(y.tail(20))
         return self.model
 

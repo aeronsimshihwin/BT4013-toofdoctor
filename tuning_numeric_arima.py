@@ -73,6 +73,7 @@ def fit_model(args):
                 # seasonal = False,
                 suppress_warnings = True,
                 error_action = 'ignore',
+                random_state = 0,
             )
 
         # Try shrink endog array before saving

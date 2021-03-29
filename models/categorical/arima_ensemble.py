@@ -37,7 +37,7 @@ class ArimaEnsemble:
             self.future = future
             self.arima = dict()
             for y_var in self.arima_features:
-                with open(f'{self.ARIMA_DIR}/{y_var}/price/{future}.p', 'rb') as f:
+                with open(f'{self.ARIMA_DIR}/{y_var}/{future}.p', 'rb') as f:
                     self.arima[y_var] = pickle.load(f)
 
     def fit(self, data, future, **kwargs):
@@ -85,7 +85,7 @@ class ArimaEnsemble:
                 features[X], features[y],
                 # eval_set = [(features[X], features[y])],
                 # eval_metric = 'mlogloss',
-                verbose = False,
+                # verbose = False,
             )
         
         return self
