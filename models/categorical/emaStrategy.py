@@ -9,7 +9,7 @@ class emaStrategyWrapper:
         self.get_y = y # Extracts y from data[future]
         self.get_X = X # Extracts X from data[future]
     
-    # Don't require fit function
+    # Don't require fit function.
     # def fit(self, data, future): 
     #     X = None if self.get_X is None else self.get_X(data[future])
     #     y = None if self.get_y is None else self.get_y(data[future])
