@@ -35,7 +35,7 @@ SAVED_MODELS = {
     # 'arima+xgb': ArimaEnsemble,
     # 'logreg': LogRegWrapper,
     'fourCandleHammer': fourCandleHammerWrapper,
-    # 'ema': emaStrategyWrapper,
+    # 'emaStrategy': emaStrategyWrapper,
     # 'swing': swingSetupWrapper
 }
 
