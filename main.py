@@ -137,25 +137,7 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
         future_df = data[future].join(indicators)
         future_df = future_df.fillna(method="ffill")
         future_df = future_df.fillna(0)
-        data[future] = future_df
-
-    ### Technical indicator strategy output ###
-    ### Added here temporarily. Aeron to get help from Mitch ###
-    # nMarkets = CLOSE.shape[1]
-    # position = np.zeros(nMarkets)
-    # index = 0
-    # for future in utils.futuresList:
-    #     # load data
-    #     df = pd.read_csv(f"tickerData/{future}.txt", parse_dates = ["DATE"])
-    #     df.columns = ['DATE', 'OPEN', 'HIGH', 'LOW', 'CLOSE', 'VOL', 'OI', 'P', 'R', 'RINFO']
-    #     df = df.set_index("DATE")
-    #     df = df[(df.VOL != 0) & (df.CLOSE != 0)]
-    #     df = df.dropna(axis=0)
-
-    #     # position[index+1] = utils.fourCandleHammer(df['CLOSE'])
-    #     # position[index+1] = utils.ema_strategy(df['CLOSE'])
-    #     position[index+1] = utils.swing_setup(df['HIGH'], df['LOW'], df['CLOSE'])
-    #     index += 1    
+        data[future] = future_df   
     
     # Fit and predict
     prediction = pd.DataFrame(index=utils.futuresList)
@@ -185,8 +167,8 @@ def mySettings():
     ''' Define your trading system settings here '''
     settings= {}
     settings['markets']  = utils.futuresAllList
-    settings['beginInSample'] = '20190123'
-    settings['endInSample'] = '20210131' # '20210331'
+    settings['beginInSample'] = '20180920' #'20190123'
+    settings['endInSample'] = '20201231' #'20210331'
     settings['lookback']= 504
     settings['budget']= 10**6
     settings['slippage']= 0.05
