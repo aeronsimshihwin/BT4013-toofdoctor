@@ -5,9 +5,21 @@ def futures_only(futures_only_pos_vector):
     '''
     only invest in futures
     '''
-    cash_frac = 0.0
-    complete_pos_vector = np.array([*futures_only_pos_vector, cash_frac])
-    return complete_pos_vector
+    if np.sum(np.abs(futures_only_pos_vector)) != 0:
+        cash_frac = 0.0
+        complete_pos_vector = np.array([*futures_only_pos_vector, cash_frac])
+        return complete_pos_vector
+    else:
+        cash_frac = 1.0
+        complete_pos_vector = np.array([*futures_only_pos_vector, cash_frac])
+        return complete_pos_vector
+
+def futures_hold(futures_only_pos_vector, previous_position):
+    if np.sum(np.abs(futures_only_pos_vector)) != 0:
+        complete_pos_vector = np.array([*futures_only_pos_vector, 0.0])
+        return complete_pos_vector
+    else:
+        return previous_position
 
 def cash_and_futures(futures_only_pos_vector):
     '''
