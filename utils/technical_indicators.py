@@ -114,9 +114,13 @@ def CCI(high, low, close, periods=20):
     return CCIIndicator(high, low, close, periods).cci().tolist()
 
 def gradient(lst):
+    last = lst[-1]
+    res = 0
     for val in lst:
         if (not math.isnan(val)) and (val != 0):
-            return (lst[-1] - val)/val
+            res = (last - val)/val
+            break
+    return res
 
 def fourCandleHammer(df, N, highFactor, lowFactor, futures, macro_analysis):
     """
@@ -183,9 +187,10 @@ def fourCandleHammer(df, N, highFactor, lowFactor, futures, macro_analysis):
         window_frame[0] += 1
         window_frame[1] += 1
 
-    df['LONG_SHORT'] = long_short
+    df_with_long_short = df.copy()
+    df_with_long_short['LONG_SHORT'] = long_short
 
-    return df
+    return df_with_long_short
 
 def ema_strategy(df, shortTermDays, longTermDays, NDays, futures, macro_analysis):
     """
@@ -293,9 +298,10 @@ def ema_strategy(df, shortTermDays, longTermDays, NDays, futures, macro_analysis
         print(df.shape[0])
         return False 
 
-    df['LONG_SHORT'] = long_short
+    df_with_long_short = df.copy()
+    df_with_long_short['LONG_SHORT'] = long_short
 
-    return df
+    return df_with_long_short
 
 def swing_setup(df, shortTermDays, longTermDays, NDays, futures, macro_analysis):
     """
@@ -380,9 +386,10 @@ def swing_setup(df, shortTermDays, longTermDays, NDays, futures, macro_analysis)
         print(df.shape[0])
         return False 
 
-    df['LONG_SHORT'] = long_short
+    df_with_long_short = df.copy()
+    df_with_long_short['LONG_SHORT'] = long_short
 
-    return df
+    return df_with_long_short
 
 def analyse_macroeconomic_indicators(df, futures, longOrShort):
     '''
@@ -401,110 +408,110 @@ def analyse_macroeconomic_indicators(df, futures, longOrShort):
     # Long
     if longOrShort == 1:
         if futures_ind == "Agriculture":
-            pp_series = df['USA_PP']
-            nfp_series = df['USA_NFP']
-            ccpi_series = df['USA_CCPI']
-            cfnai_series = df['USA_CFNAI']
+            pp_lst = df['USA_PP'].tolist()
+            nfp_lst = df['USA_NFP'].tolist()
+            ccpi_lst = df['USA_CCPI'].tolist()
+            cfnai_lst = df['USA_CFNAI'].tolist()
             ## USA_PP : Compute percentage change over a period. If positive (negative), price of domestic products - agriculture increase (decrease).
-            pp_flag = (pp_series[-1] - pp_series[0]) / pp_series[0] > 0
+            pp_flag = gradient(pp_lst) > 0
 
             ## USA_NFP : Compute percentage change over a period. If positive (negative), more workers in the US, more consumers have purchasing power.
-            nfp_flag = (nfp_series[-1] - nfp_series[0]) / nfp_series[0] > 0
+            nfp_flag = gradient(nfp_lst) > 0
 
             ## USA_CCPI : Compute percentage change over a period, proxy for core inflation rate. If greater than 2%, considered high inflation. 
             # Reference : https://www.thebalance.com/core-inflation-rate-3305918#:~:text=3-,What%20Is%20Core%20Inflation%3F,reading%20of%20underlying%20inflation%20trends.
-            ccpi_flag = (ccpi_series[-1] - ccpi_series[0]) / ccpi_series[0] > 0.02
+            ccpi_flag = gradient(ccpi_lst) > 0.02
 
             ## USA_CFNAI : A positive (negative) index reading corresponds to growth above (below) trend.
             # Reference : https://www.chicagofed.org/publications/cfnai/index
-            cfnai_flag = cfnai_series[-1] > 0
+            cfnai_flag = cfnai_lst[-1] > 0
 
             res = (pp_flag, nfp_flag, ccpi_flag, cfnai_flag)
             if sum(res) >= 2: return True # 2 or more indicators (out of 4) analyzed to be the same result, we take that.
 
         elif futures_ind == "Energy":
-            nfp_series = df['USA_NFP']
-            ccpi_series = df['USA_CCPI']
-            cfnai_series = df['USA_CFNAI']
+            nfp_lst = df['USA_NFP'].tolist()
+            ccpi_lst = df['USA_CCPI'].tolist()
+            cfnai_lst = df['USA_CFNAI'].tolist()
 
-            nfp_flag = (nfp_series[-1] - nfp_series[0]) / nfp_series[0] > 0
+            nfp_flag = gradient(nfp_lst) > 0
 
-            ccpi_flag = (ccpi_series[-1] - ccpi_series[0]) / ccpi_series[0] > 0.02
+            ccpi_flag = gradient(ccpi_lst) > 0.02
 
-            cfnai_flag = cfnai_series[-1] > 0
+            cfnai_flag = cfnai_lst[-1] > 0
 
             res = (nfp_flag, ccpi_flag, cfnai_flag)
             if sum(res) >= 2: return True # 2 or more indicators (out of 3) analyzed to be the same result, we take that.
 
         elif futures_ind == "Currency":
-            nfp_series = df['USA_NFP']
-            ipmom_series = df['USA_IPMOM']
-            cpi_series = df['USA_CPI']
-            unr_series = df['USA_UNR']
+            nfp_lst = df['USA_NFP'].tolist()
+            ipmom_lst = df['USA_IPMOM'].tolist()
+            cpi_lst = df['USA_CPI'].tolist()
+            unr_lst = df['USA_UNR'].tolist()
 
-            nfp_flag = (nfp_series[-1] - nfp_series[0]) / nfp_series[0] > 0
+            nfp_flag = gradient(nfp_lst) > 0
 
             ## USA_IPMOM : Compute percentage change over a period. If positive (negative), good (bad) economic health.
-            ipmom_flag = (ipmom_series[-1] - ipmom_series[0]) / ipmom_series[0] > 0
+            ipmom_flag = gradient(ipmom_lst) > 0
 
             ## USA_CPI : Compute percentage change over a period, proxy for inflation rate. If greater than 1.5%, considered high inflation. 
             # Reference : https://www.researchgate.net/publication/311413446_Inflation_and_Growth_An_Estimate_of_the_Threshold_Level_of_Inflation_in_the_US#:~:text=The%20model%20suggests%20that%20the,real%20GDP%20growth%20is%20ambiguous.
-            cpi_flag = (cpi_series[-1] - cpi_series[0]) / cpi_series[0] > 0.15
+            cpi_flag = gradient(cpi_lst) > 0.15
             
             ## USA_UNR : Compute percentage change over a period. If positive (negative), bad (good) for economy.
-            unr_flag = (unr_series[-1] - unr_series[0]) / unr_series[0] < 0
+            unr_flag = gradient(unr_lst) < 0
 
             res = (nfp_flag, ipmom_flag, cpi_flag, unr_flag)
             if sum(res) >= 2: return True # 2 or more indicators (out of 4) analyzed to be the same result, we take that.
 
         elif futures_ind == "Index":
-            cfnai_series = df['USA_CFNAI']
-            cfnai_flag = cfnai_series[-1] > 0
+            cfnai_lst = df['USA_CFNAI'].tolist()
+            cfnai_flag = cfnai_lst[-1] > 0
 
             return cfnai_flag
 
         elif futures_ind == "Bond":
-            cpi_series = df['USA_CPI']
-            cfnai_series = df['USA_CFNAI']
-            unr_series = df['USA_UNR']
+            cpi_lst = df['USA_CPI'].tolist()
+            cfnai_lst = df['USA_CFNAI'].tolist()
+            unr_lst = df['USA_UNR'].tolist()
 
-            cpi_flag = (cpi_series[-1] - cpi_series[0]) / cpi_series[0] > 0.15
+            cpi_flag = gradient(cpi_lst) > 0.15
 
-            cfnai_flag = cfnai_series[-1] > 0
+            cfnai_flag = cfnai_lst[-1] > 0
 
-            unr_flag = (unr_series[-1] - unr_series[0]) / unr_series[0] < 0
+            unr_flag = gradient(unr_lst) < 0
 
             res = (cpi_flag, cfnai_flag, unr_flag)
             if sum(res) >= 2: return True # 2 or more indicators (out of 3) analyzed to be the same result, we take that.
 
         elif futures_ind == "Metal":
-            nfp_series = df['USA_NFP']
-            ccpi_series = df['USA_CCPI']
-            cfnai_series = df['USA_CFNAI']
+            nfp_lst = df['USA_NFP'].tolist()
+            ccpi_lst = df['USA_CCPI'].tolist()
+            cfnai_lst = df['USA_CFNAI'].tolist()
 
-            nfp_flag = (nfp_series[-1] - nfp_series[0]) / nfp_series[0] > 0
+            nfp_flag = gradient(nfp_lst) > 0
             
-            ccpi_flag = (ccpi_series[-1] - ccpi_series[0]) / ccpi_series[0] > 0.02
+            ccpi_flag = gradient(ccpi_lst) > 0.02
 
-            cfnai_flag = cfnai_series[-1] > 0
+            cfnai_flag = cfnai_lst[-1] > 0
 
             res = (nfp_flag, ccpi_flag, cfnai_flag)
             if sum(res) >= 2: return True # 2 or more indicators (out of 3) analyzed to be the same result, we take that.
 
         elif futures_ind == "Interest Rate":
-            lei_series = df['USA_LEI']
-            cpicm_series = df['USA_CPICM']
-            unr_series = df['USA_UNR']
+            lei_lst = df['USA_LEI'].tolist()
+            cpicm_lst = df['USA_CPICM'].tolist()
+            unr_lst = df['USA_UNR'].tolist()
 
             ## USA_LEI
             # Compute percentage change over a period. If positive (negative), interest rates rise (fall).
-            lei_flag = (lei_series[-1] - lei_series[0]) / lei_series[0] > 0
+            lei_flag = gradient(lei_lst) > 0
 
             ## USA_CPICM
             # Compute percentage change over a period. If positive (negative), high (low) inflation and interest rates fall (rise).
-            cpicm_flag = (cpicm_series[-1] - cpicm_series[0]) / cpicm_series[0] < 0
+            cpicm_flag = gradient(cpicm_lst) < 0
 
-            unr_flag = (unr_series[-1] - unr_series[0]) / unr_series[0] < 0
+            unr_flag = gradient(unr_lst) < 0
         
             res = (lei_flag, cpicm_flag, unr_flag)
             if sum(res) >= 2: return True # 2 or more indicators (out of 3) analyzed to be the same result, we take that.
@@ -512,110 +519,110 @@ def analyse_macroeconomic_indicators(df, futures, longOrShort):
     # Short
     elif longOrShort == -1:
         if futures_ind == "Agriculture":
-            pp_series = df['USA_PP']
-            nfp_series = df['USA_NFP']
-            ccpi_series = df['USA_CCPI']
-            cfnai_series = df['USA_CFNAI']
+            pp_lst = df['USA_PP'].tolist()
+            nfp_lst = df['USA_NFP'].tolist()
+            ccpi_lst = df['USA_CCPI'].tolist()
+            cfnai_lst = df['USA_CFNAI'].tolist()
             ## USA_PP : Compute percentage change over a period. If positive (negative), price of domestic products - agriculture increase (decrease).
-            pp_flag = (pp_series[-1] - pp_series[0]) / pp_series[0] < 0
+            pp_flag = gradient(pp_lst) < 0
 
             ## USA_NFP : Compute percentage change over a period. If positive (negative), more workers in the US, more consumers have purchasing power.
-            nfp_flag = (nfp_series[-1] - nfp_series[0]) / nfp_series[0] < 0
+            nfp_flag = gradient(nfp_lst) < 0
 
             ## USA_CCPI : Compute percentage change over a period, proxy for core inflation rate. If greater than 2%, considered high inflation. 
             # Reference : https://www.thebalance.com/core-inflation-rate-3305918#:~:text=3-,What%20Is%20Core%20Inflation%3F,reading%20of%20underlying%20inflation%20trends.
-            ccpi_flag = (ccpi_series[-1] - ccpi_series[0]) / ccpi_series[0] < 0.02
+            ccpi_flag = gradient(ccpi_lst) < 0.02
 
             ## USA_CFNAI : A positive (negative) index reading corresponds to growth above (below) trend.
             # Reference : https://www.chicagofed.org/publications/cfnai/index
-            cfnai_flag = cfnai_series[-1] < 0
+            cfnai_flag = cfnai_lst[-1] < 0
 
             res = (pp_flag, nfp_flag, ccpi_flag, cfnai_flag)
             if sum(res) >= 2: return True # 2 or more indicators (out of 4) analyzed to be the same result, we take that.
 
         elif futures_ind == "Energy":
-            nfp_series = df['USA_NFP']
-            ccpi_series = df['USA_CCPI']
-            cfnai_series = df['USA_CFNAI']
+            nfp_lst = df['USA_NFP'].tolist()
+            ccpi_lst = df['USA_CCPI'].tolist()
+            cfnai_lst = df['USA_CFNAI'].tolist()
 
-            nfp_flag = (nfp_series[-1] - nfp_series[0]) / nfp_series[0] < 0
+            nfp_flag = gradient(nfp_lst) < 0
 
-            ccpi_flag = (ccpi_series[-1] - ccpi_series[0]) / ccpi_series[0] < 0.02
+            ccpi_flag = gradient(ccpi_lst) < 0.02
 
-            cfnai_flag = cfnai_series[-1] < 0
+            cfnai_flag = cfnai_lst[-1] < 0
 
             res = (nfp_flag, ccpi_flag, cfnai_flag)
             if sum(res) >= 2: return True # 2 or more indicators (out of 3) analyzed to be the same result, we take that.
 
         elif futures_ind == "Currency":
-            nfp_series = df['USA_NFP']
-            ipmom_series = df['USA_IPMOM']
-            cpi_series = df['USA_CPI']
-            unr_series = df['USA_UNR']
+            nfp_lst = df['USA_NFP'].tolist()
+            ipmom_lst = df['USA_IPMOM'].tolist()
+            cpi_lst = df['USA_CPI'].tolist()
+            unr_lst = df['USA_UNR'].tolist()
 
-            nfp_flag = (nfp_series[-1] - nfp_series[0]) / nfp_series[0] < 0
+            nfp_flag = gradient(nfp_lst) < 0
 
             ## USA_IPMOM : Compute percentage change over a period. If positive (negative), good (bad) economic health.
-            ipmom_flag = (ipmom_series[-1] - ipmom_series[0]) / ipmom_series[0] < 0
+            ipmom_flag = gradient(ipmom_lst) < 0
 
             ## USA_CPI : Compute percentage change over a period, proxy for inflation rate. If greater than 1.5%, considered high inflation. 
             # Reference : https://www.researchgate.net/publication/311413446_Inflation_and_Growth_An_Estimate_of_the_Threshold_Level_of_Inflation_in_the_US#:~:text=The%20model%20suggests%20that%20the,real%20GDP%20growth%20is%20ambiguous.
-            cpi_flag = (cpi_series[-1] - cpi_series[0]) / cpi_series[0] < 0.15
+            cpi_flag = gradient(cpi_lst) < 0.15
             
             ## USA_UNR : Compute percentage change over a period. If positive (negative), bad (good) for economy.
-            unr_flag = (unr_series[-1] - unr_series[0]) / unr_series[0] > 0
+            unr_flag = gradient(unr_lst) > 0
 
             res = (nfp_flag, ipmom_flag, cpi_flag, unr_flag)
             if sum(res) >= 2: return True # 2 or more indicators (out of 4) analyzed to be the same result, we take that.
 
         elif futures_ind == "Index":
-            cfnai_series = df['USA_CFNAI']
-            cfnai_flag = cfnai_series[-1] < 0
+            cfnai_lst = df['USA_CFNAI'].tolist()
+            cfnai_flag = cfnai_lst[-1] < 0
 
             return cfnai_flag
 
         elif futures_ind == "Bond":
-            cpi_series = df['USA_CPI']
-            cfnai_series = df['USA_CFNAI']
-            unr_series = df['USA_UNR']
+            cpi_lst = df['USA_CPI'].tolist()
+            cfnai_lst = df['USA_CFNAI'].tolist()
+            unr_lst = df['USA_UNR'].tolist()
 
-            cpi_flag = (cpi_series[-1] - cpi_series[0]) / cpi_series[0] < 0.15
+            cpi_flag = gradient(cpi_lst) < 0.15
 
-            cfnai_flag = cfnai_series[-1] < 0
+            cfnai_flag = cfnai_lst[-1] < 0
 
-            unr_flag = (unr_series[-1] - unr_series[0]) / unr_series[0] > 0
+            unr_flag = gradient(unr_lst) > 0
 
             res = (cpi_flag, cfnai_flag, unr_flag)
             if sum(res) >= 2: return True # 2 or more indicators (out of 3) analyzed to be the same result, we take that.
 
         elif futures_ind == "Metal":
-            nfp_series = df['USA_NFP']
-            ccpi_series = df['USA_CCPI']
-            cfnai_series = df['USA_CFNAI']
+            nfp_lst = df['USA_NFP'].tolist()
+            ccpi_lst = df['USA_CCPI'].tolist()
+            cfnai_lst = df['USA_CFNAI'].tolist()
 
-            nfp_flag = (nfp_series[-1] - nfp_series[0]) / nfp_series[0] < 0
+            nfp_flag = gradient(nfp_lst) < 0
             
-            ccpi_flag = (ccpi_series[-1] - ccpi_series[0]) / ccpi_series[0] < 0.02
+            ccpi_flag = gradient(ccpi_lst) < 0.02
 
-            cfnai_flag = cfnai_series[-1] < 0
+            cfnai_flag = cfnai_lst[-1] < 0
 
             res = (nfp_flag, ccpi_flag, cfnai_flag)
             if sum(res) >= 2: return True # 2 or more indicators (out of 3) analyzed to be the same result, we take that.
 
         elif futures_ind == "Interest Rate":
-            lei_series = df['USA_LEI']
-            cpicm_series = df['USA_CPICM']
-            unr_series = df['USA_UNR']
+            lei_lst = df['USA_LEI'].tolist()
+            cpicm_lst = df['USA_CPICM'].tolist()
+            unr_lst = df['USA_UNR'].tolist()
 
             ## USA_LEI
             # Compute percentage change over a period. If positive (negative), interest rates rise (fall).
-            lei_flag = (lei_series[-1] - lei_series[0]) / lei_series[0] < 0
+            lei_flag = gradient(lei_lst) < 0
 
             ## USA_CPICM
             # Compute percentage change over a period. If positive (negative), high (low) inflation and interest rates fall (rise).
-            cpicm_flag = (cpicm_series[-1] - cpicm_series[0]) / cpicm_series[0] > 0
+            cpicm_flag = gradient(cpicm_lst) > 0
 
-            unr_flag = (unr_series[-1] - unr_series[0]) / unr_series[0] > 0
+            unr_flag = gradient(unr_lst) > 0
         
             res = (lei_flag, cpicm_flag, unr_flag)
             if sum(res) >= 2: return True # 2 or more indicators (out of 3) analyzed to be the same result, we take that.
