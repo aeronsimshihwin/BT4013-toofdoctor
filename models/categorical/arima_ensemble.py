@@ -105,5 +105,5 @@ class ArimaEnsemble:
             arima_pred.reset_index(drop=True),
         ], axis=1)
 
-        results = self.model.predict(features)
-        return results[0]
+        results = self.model.predict_proba(features)
+        return results[0][2] # Probs for long
