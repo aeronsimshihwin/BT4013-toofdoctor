@@ -50,7 +50,7 @@ def fit_model(args):
     # Or fit a new model if it doesn't exist
     except:
         data = {
-            future: df[df.index < datetime(2021, 1, 1)] # Exclude test data
+            future: df[df.index < datetime(2018, 10, 1)] # Exclude test data
             for future, df in data.items()
         }
         try:

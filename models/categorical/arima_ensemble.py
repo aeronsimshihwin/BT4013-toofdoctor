@@ -90,7 +90,7 @@ class ArimaEnsemble:
         
         return self
 
-    def predict(self, data, future):
+    def predict(self, data, future, threshold=0.3):
         """Collates predictions from arima sub-models and passes them to a XGBoost meta-classifier"""
         self._load_arima(future)
         
@@ -104,6 +104,13 @@ class ArimaEnsemble:
             price_data.reset_index(drop=True), 
             arima_pred.reset_index(drop=True),
         ], axis=1)
+        features = features.ffill()
+        features = features.fillna(0)
 
-        results = self.model.predict_proba(features)
-        return results[0][2] # Probs for long
+        try:
+            results = self.model.predict_proba(features)
+        except:
+            print(features.tail())
+            raise
+        y_pred = max(0, results[0][-1] - threshold) # Probs for long
+        return 0 if np.isnan(y_pred) else y_pred # long only

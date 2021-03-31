@@ -32,9 +32,9 @@ import utils
 SAVED_MODELS = {
     # 'rf': RFWrapper,
     # 'xgb': XGBWrapper,
-    # 'arima+xgb': ArimaEnsemble,
+    'arima+xgb': ArimaEnsemble,
     # 'logreg': LogRegWrapper,
-    'fourCandleHammer': fourCandleHammerWrapper,
+    # 'fourCandleHammer': fourCandleHammerWrapper,
     # 'emaStrategy': emaStrategyWrapper,
     # 'swing': swingSetupWrapper
 }

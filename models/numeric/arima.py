@@ -34,11 +34,15 @@ class Arima:
     def fit(self, data, future, **kwargs):
         y = None if self.y is None else data[future][self.y]
         X = None if self.X is None else data[future][self.X]
-        if X is None:
-            return self._fit(y, X, **kwargs)
-        else: 
-            return self._fit_exog(y, X, **kwargs)
-
+        try:
+            if X is None:
+                return self._fit(y, X, **kwargs)
+            else:
+                return self._fit_exog(y, X, **kwargs)
+        except Exception as error:
+            # print(f'{self.SAVED_DIR}/{future}.p - fit: {error}')
+            return self.model
+    
     def predict(self, data, future, **kwargs):
         y = None if self.y is None else data[future][self.y]
         X = None if self.X is None else data[future][self.X]
@@ -50,7 +54,7 @@ class Arima:
                 self._fit_exog(y, X, **kwargs)
                 return self.model.predict(X, n_periods=1)[0]
         except Exception as error:
-            warnings.warn(f'{self.SAVED_DIR}/{future}.p: {error}')
+            # print(f'{self.SAVED_DIR}/{y.name}/{future}.p - predict: {error}')
             return np.nan
     
 
