@@ -101,9 +101,9 @@ def save_meta_predictions_techIndicators(
         
         if model_name == "fourCandleHammer":
             df_with_strategy = utils.fourCandleHammer(X, params_dict['N'], params_dict['highFactor'], params_dict['lowFactor'], future, params_dict['macro_analysis'])
-        elif model_name == "ema_strategy":
+        elif model_name == "emaStrategy":
             df_with_strategy = utils.ema_strategy(X, params_dict['shortTermDays'], params_dict['longTermDays'], params_dict['NDays'], future, params_dict['macro_analysis'])
-        elif model_name == "swing_setup":
+        elif model_name == "swingSetup":
             df_with_strategy = utils.swing_setup(X, params_dict['shortTermDays'], params_dict['longTermDays'], params_dict['NDays'], future, params_dict['macro_analysis'])
         # fitted = model.fit(X_train, y_train)
         # y_pred = fitted.predict_proba(X_val)[:,1]
