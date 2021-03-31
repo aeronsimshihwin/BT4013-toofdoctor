@@ -191,8 +191,9 @@ if __name__ == '__main__':
     import quantiacsToolbox
     
     model = 'logreg'
-    type = 'pct_tech_macro'
-    thresholds = [round(0.05 * x, 2) for x in range(6, 15)]
+    type = 'pct_macro' # 'pct_macro' # 
+    thresholds = [round(0.05 * x, 2) for x in range(0, 7)]# [round(0.05 * x, 2) for x in range(6, 15)]
+    thresholds = [0.6]
     threshold_results = []
     sharpe_results = []
     strategy_results = []

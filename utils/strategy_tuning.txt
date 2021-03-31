@@ -1,2 +1,2 @@
-0.5
-cash_and_futures
+0.6
+futures_only

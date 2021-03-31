@@ -7,7 +7,7 @@ from sklearn.linear_model import LogisticRegression
 FUTURES_LIST = utils.futuresList
 
 class LogRegWrapper:
-    SAVED_DIR = "saved_models/categorical/logreg/validation/pct_tech_macro"
+    SAVED_DIR = "saved_models/categorical/logreg/final/pct_macro" 
 
     def __init__(self, model=None, y=None, X=None):
         self.model = model
@@ -18,7 +18,7 @@ class LogRegWrapper:
         if future in data:
             self._fit(*self._y_X(data, future), **kwargs)
 
-    def predict(self, data, future, threshold=0.5, **kwargs):
+    def predict(self, data, future, threshold=0.6, **kwargs):
         try:
             y, X = self._y_X(data, future)
             y_pred = self.model.predict_proba(X)
