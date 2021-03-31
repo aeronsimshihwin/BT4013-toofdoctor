@@ -9,7 +9,10 @@ SAVED_DIR = "/saved_models/categorical/xgb"
 FUTURES_LIST = utils.futuresList
 
 class XGBWrapper:
-    SAVED_DIR = 'saved_models/categorical/xgb/perc'
+    SAVED_DIR = 'saved_models/categorical/xgb/val/pct'
+    # SAVED_DIR = 'saved_models/categorical/xgb/val/pct_tech'
+    # SAVED_DIR = 'saved_models/categorical/xgb/val/pct_macro'
+    # SAVED_DIR = 'saved_models/categorical/xgb/val/pct_tech_macro'
     
     def __init__(self, model=None, y=None, X=None):
         self.model = model
@@ -20,15 +23,16 @@ class XGBWrapper:
         if future in data:
             self._fit(*self._y_X(data, future), **kwargs)
 
-    def predict(self, data, future, **kwargs):
+    def predict(self, data, future, threshold=0.5, **kwargs):
         try:
             y, X = self._y_X(data, future)
             y_pred = self.model.predict_proba(X)
             y_pred_pos = y_pred[:, 1][-1] # get probability of class 1
             y_pred_norm = y_pred_pos - 0.5 # normalise to include long and short
-            y_pred_norm_long = max(0,y_pred_norm) # long only
-            return y_pred_pos # returns only last value
+            y_pred_norm_long = max(0, y_pred_pos - threshold) # long only
+            return y_pred_norm_long # returns only last value
         except:
+            print("invalid")
             return 0 # input invalid
 
     def _y_X(self, data, future):
