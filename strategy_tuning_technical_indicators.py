@@ -15,7 +15,10 @@ from models.categorical import (
     XGBWrapper,
     RFWrapper,
     ArimaEnsemble,
-    LogRegWrapper
+    LogRegWrapper,
+    fourCandleHammerWrapper,
+    emaStrategyWrapper,
+    swingSetupWrapper
 )
 from models.numeric import (
     Arima,
@@ -143,7 +146,7 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     # Fit and predict
     prediction = pd.DataFrame(index=utils.futuresList)
     for (name, future), model in tqdm(settings['models'].items()):
-        prediction.loc[future, name] = model.predict(data, future, threshold=settings['threshold'])
+        prediction.loc[future, name] = model.predict(data, future) # , threshold=settings['threshold']
     sign = utils.sign(prediction)
     magnitude = utils.magnitude(prediction)
     
@@ -174,15 +177,13 @@ def mySettings():
 
     # Stuff to persist
     settings['models'] = LOADED_MODELS
+    
     with open('utils/strategy_tuning.txt','r') as f:
-        threshold = float(f.readline())
         strategy = f.readline()
-
-    settings['threshold'] = threshold
+        
     settings['strategy'] = strategy
     settings['sign'] = []
     settings['magnitude'] = []
-    settings['previous_position'] = []
 
     return settings
 
@@ -190,27 +191,19 @@ def mySettings():
 if __name__ == '__main__':
     import quantiacsToolbox
     
-    model = 'logreg'
-    type = 'pct_tech'
-    thresholds = [round(0.05 * x, 2) for x in range(6, 15)]
-    threshold_results = []
+    model = 'fourCandleHammer'
     sharpe_results = []
     strategy_results = []
 
     for strategy in ['futures_only', 'futures_hold_pos', 'cash_and_futures']:
-        for threshold in tqdm(thresholds):
-            with open('utils/strategy_tuning.txt', 'w') as file:
-                file.write(str(threshold) + '\n' + strategy)
-
-            # retrieve sharpe
-            results = quantiacsToolbox.runts(__file__, plotEquity=False)
-            sharpe = results["stats"]["sharpe"]
-            sharpe_results.append(sharpe)
-            strategy_results.append(strategy)
-            threshold_results.append(threshold)
+        # retrieve sharpe
+        results = quantiacsToolbox.runts(__file__, plotEquity=False)
+        sharpe = results["stats"]["sharpe"]
+        sharpe_results.append(sharpe)
+        strategy_results.append(strategy)
     
     # save results
-    results_df = pd.DataFrame({'strategy': strategy_results, 'threshold': threshold_results, 'sharpe': sharpe_results})
+    results_df = pd.DataFrame({'strategy': strategy_results, 'sharpe': sharpe_results})
     best_result_df = results_df.loc[results_df["sharpe"] == max(results_df["sharpe"])].reset_index(drop=True)
     print(best_result_df)
-    results_df.to_csv(f'model_metrics/strategy_threshold/{model}_{type}.csv')
+    results_df.to_csv(f'model_metrics/strategy_threshold/{model}.csv')

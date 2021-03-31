@@ -3,7 +3,7 @@ import pandas as pd
 import utils
 
 class swingSetupWrapper:
-    SAVED_DIR = "/saved_models/categorical/swingSetup"
+    SAVED_DIR = "saved_models/categorical/swingSetup"
     def __init__(self, model_params=None, y=None, X=None):
         self.model_params = model_params
         self.get_y = y # Extracts y from data[future]
