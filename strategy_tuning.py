@@ -1,5 +1,4 @@
 from models.numeric import (
-    Arima,
     ArimaRaw, 
     ArimaLinear, 
     ArimaNoTrend, 

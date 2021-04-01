@@ -16,22 +16,23 @@ def walk_forward(
     future: str,
     train_size: int = 504,
     val_size: int = 1,
+    refit = True,
     progress_bar: str = None,
 ):
     """Runs a walk forward validation to generate model predictions"""
-    data = data[future][model.y_var]
-    if len(data) < train_size + val_size:
+    data = data[future]
+    if data.shape[0] < train_size + val_size:
         raise ValueError('Insufficient data for a single train-val pass')
     
     loop = window_generator(data, train_size, val_size)    
     try:
         if progress_bar == 'notebook':
             from tqdm.notebook import tqdm
-            num_windows = (len(data) - train_size) // val_size
+            num_windows = (data.shape[0] - train_size) // val_size
             loop = tqdm(loop, total=num_windows, leave=False, position=1)
         else:
             from tqdm import tqdm
-            num_windows = (len(data) - train_size) // val_size
+            num_windows = (data.shape[0] - train_size) // val_size
             loop = tqdm(loop, total=num_windows, leave=False, position=1)
     except:
         pass
@@ -47,10 +48,11 @@ def walk_forward(
         })
         
         try:
-            model.model.fit(train_window)
-            y_preds[val_window.index] = model.model.predict(len(val_window))
+            if refit:
+                model.fit({future: train_window}, future)
+            y_preds[val_window.index] = model.predict({future: val_window}, future)
         except:
-            y_preds[val_window.index] = np.array([np.nan]*len(val_window))
+            y_preds[val_window.index] = np.array([np.nan]*val_window.shape[0])
     
     windows = pd.DataFrame.from_records(windows)    
     return windows, y_preds
