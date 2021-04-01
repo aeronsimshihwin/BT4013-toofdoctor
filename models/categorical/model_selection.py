@@ -97,6 +97,7 @@ def save_meta_predictions(
         model = model_fn()
         fitted = model.fit(X_train, y_train)
         y_pred = fitted.predict_proba(X_val)[:,1]
+        y_pred = [max(0, x-0.6) for x in y_pred]
         y_pred_series = pd.Series(y_pred, index=X.loc[val_mask].index)
         predictions = predictions.append(y_pred_series)
 

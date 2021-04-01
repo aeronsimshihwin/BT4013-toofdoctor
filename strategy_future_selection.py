@@ -1,9 +1,3 @@
-from models.categorical import (
-    XGBWrapper,
-    RFWrapper,
-    LogRegWrapper
-)
-
 from models.numeric import (
     ArimaRaw, 
     ArimaLinear, 
@@ -12,17 +6,9 @@ from models.numeric import (
 )
 
 from models.categorical import (
-    XGBWrapper,
-    RFWrapper,
-    ArimaEnsemble,
-    LogRegWrapper,
-    fourCandleHammerWrapper,
-    emaStrategyWrapper,
-    swingSetupWrapper
+    LogRegWrapper
 )
-from models.numeric import (
-    Arima,
-)
+
 from strategy import (
     basic_strategy, 
     long_only,
@@ -32,6 +18,7 @@ from strategy import (
     futures_only,
     futures_hold,
     cash_and_futures,
+    futures_subset
 )
 
 import utils
@@ -40,14 +27,22 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-# Must be imported last
-from main import LOADED_MODELS
-
-strategies = {
-    'futures_only': futures_only,
-    'futures_hold': futures_hold,
-    'cash_and_futures': cash_and_futures
+# Load saved models
+SAVED_MODELS = {
+    'logreg': LogRegWrapper
 }
+
+LOADED_MODELS = {}
+for name, model in SAVED_MODELS.items():
+    print(f'loading {name} from {model.SAVED_DIR}...')
+    for future in utils.futuresList:
+        pickle_path = f'{model.SAVED_DIR}/{future}.p'
+        try:
+            with open(pickle_path, 'rb') as f:
+                LOADED_MODELS[name, future] = pickle.load(f)
+        except:
+            raise FileNotFoundError(f'No saved {name} for {future}!')
+
 def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     USA_HRS, USA_BOT, USA_BC, USA_BI, USA_CU, USA_CF, USA_CHJC, USA_CFNAI,\
     USA_CP, USA_CCR, USA_CPI, USA_CCPI, USA_CINF, USA_DFMI, USA_DUR,\
@@ -146,7 +141,7 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     # Fit and predict
     prediction = pd.DataFrame(index=utils.futuresList)
     for (name, future), model in tqdm(settings['models'].items()):
-        prediction.loc[future, name] = model.predict(data, future) # , threshold=settings['threshold']
+        prediction.loc[future, name] = model.predict(data, future)
     sign = utils.sign(prediction)
     magnitude = utils.magnitude(prediction)
     
@@ -155,10 +150,10 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     position = basic_strategy(sign[model], magnitude[model]) 
     
     # Cash-futures strategy
-    if settings['strategy'] == 'futures_hold':
-        position = strategies[settings['strategy']](position, settings['previous_position'])
+    if not settings['subset']:
+        position = futures_only(position)
     else:
-        position = strategies[settings['strategy']](position)
+        position = futures_subset(position, subset_csv=settings['subset'])
 
     # Update persistent data across runs
     settings['sign'].append(sign)
@@ -180,34 +175,26 @@ def mySettings():
 
     # Stuff to persist
     settings['models'] = LOADED_MODELS
-    
-    with open('utils/strategy_tuning.txt','r') as f:
-        strategy = f.readline()
-        
-    settings['strategy'] = strategy
     settings['sign'] = []
     settings['magnitude'] = []
-    settings['previous_position'] = np.array([0] * len(utils.futuresList) + [1,])
+    settings['previous_position'] = []
+
+    settings['subset'] = 'model_metrics/future_subset/logreg_pct_macro.csv' # None
 
     return settings
 
 # Evaluate trading system defined in current file.
 if __name__ == '__main__':
     import quantiacsToolbox
-    
-    model = 'fourCandleHammer'
-    sharpe_results = []
-    strategy_results = []
 
-    for strategy in ['futures_only', 'futures_hold', 'cash_and_futures']:
-        # retrieve sharpe
-        results = quantiacsToolbox.runts(__file__, plotEquity=False)
-        sharpe = results["stats"]["sharpe"]
-        sharpe_results.append(sharpe)
-        strategy_results.append(strategy)
-    
-    # save results
-    results_df = pd.DataFrame({'strategy': strategy_results, 'sharpe': sharpe_results})
-    best_result_df = results_df.loc[results_df["sharpe"] == max(results_df["sharpe"])].reset_index(drop=True)
-    print(best_result_df)
-    results_df.to_csv(f'model_metrics/strategy_threshold/{model}.csv')
+    ## FIRST RUN (COMMENT OUT AFTER FIRST RUN) ##
+    ## CHANGE settings['subset'] TO None ##
+    # results = quantiacsToolbox.runts(__file__, plotEquity=False)
+    # futureResults = utils.market_stats(results)
+    # futureResults["trade"] = [1 if x > 0 else 0 for x in futureResults.sharpe]
+    # futureResults.to_csv(f'model_metrics/future_subset/logreg_pct_macro.csv')
+
+    ## SECOND RUN ##
+    ## CHANGE settings['subset'] TO FILE LOCATION e.g. 'model_metrics/future_subset/logreg_pct_macro.csv'
+    results = quantiacsToolbox.runts(__file__, plotEquity=False)
+    print("sharpe:", results["stats"]["sharpe"])
