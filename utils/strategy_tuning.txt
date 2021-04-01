@@ -1,7 +1,2 @@
-<<<<<<< HEAD
-0.6
-futures_only
-=======
-0.5
-cash_and_futures
->>>>>>> main
+0.75
+futures_hold

@@ -7,7 +7,7 @@ from sklearn.linear_model import LogisticRegression
 FUTURES_LIST = utils.futuresList
 
 class LogRegWrapper:
-    SAVED_DIR = "saved_models/categorical/logreg/final/pct_macro" 
+    SAVED_DIR = "saved_models/categorical/logreg/validation/pct_macro" 
 
     def __init__(self, model=None, y=None, X=None):
         self.model = model
