@@ -1,7 +1,10 @@
 from models.categorical import (
     XGBWrapper,
     RFWrapper,
-    LogRegWrapper
+    LogRegWrapper,
+    fourCandleHammerWrapper,
+    emaStrategyWrapper,
+    swingSetupWrapper
 )
 
 from models.numeric import (
