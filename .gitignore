@@ -19,4 +19,6 @@ windows.txt
 # temporary
 saved_models/categorical/rf
 saved_models/categorical/xgb
-categorical_stacking.ipynb
+saved_models/meta
+meta_model.ipynb
+meta_model_validation.py
