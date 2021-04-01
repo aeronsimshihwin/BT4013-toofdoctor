@@ -4,12 +4,12 @@ from models.categorical import (
     LogRegWrapper
 )
 
-from models.numeric import (
-    ArimaRaw, 
-    ArimaLinear, 
-    ArimaNoTrend, 
-    ArimaLinearNoTrend,
-)
+# from models.numeric import (
+#     ArimaRaw, 
+#     ArimaLinear, 
+#     ArimaNoTrend, 
+#     ArimaLinearNoTrend,
+# )
 
 from models.categorical import (
     XGBWrapper,
@@ -182,6 +182,7 @@ def mySettings():
     settings['models'] = LOADED_MODELS
     
     with open('utils/strategy_tuning.txt','r') as f:
+        threshold = float(f.readline())
         strategy = f.readline()
         
     settings['strategy'] = strategy
@@ -195,7 +196,7 @@ def mySettings():
 if __name__ == '__main__':
     import quantiacsToolbox
     
-    model = 'fourCandleHammer'
+    model = 'emaStrategy' # 'fourCandleHammer', 'swing'
     sharpe_results = []
     strategy_results = []
 
