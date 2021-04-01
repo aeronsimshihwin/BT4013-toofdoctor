@@ -155,7 +155,10 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     position = basic_strategy(sign[model], magnitude[model]) 
     
     # Cash-futures strategy
-    position = futures_only(position)
+    if settings['strategy'] == 'futures_hold':
+        position = strategies[settings['strategy']](position, settings['previous_position'])
+    else:
+        position = strategies[settings['strategy']](position)
 
     # Update persistent data across runs
     settings['sign'].append(sign)
@@ -184,6 +187,7 @@ def mySettings():
     settings['strategy'] = strategy
     settings['sign'] = []
     settings['magnitude'] = []
+    settings['previous_position'] = np.array([0] * len(utils.futuresList) + [1,])
 
     return settings
 
@@ -195,7 +199,7 @@ if __name__ == '__main__':
     sharpe_results = []
     strategy_results = []
 
-    for strategy in ['futures_only', 'futures_hold_pos', 'cash_and_futures']:
+    for strategy in ['futures_only', 'futures_hold', 'cash_and_futures']:
         # retrieve sharpe
         results = quantiacsToolbox.runts(__file__, plotEquity=False)
         sharpe = results["stats"]["sharpe"]
