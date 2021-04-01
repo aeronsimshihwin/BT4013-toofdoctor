@@ -4,12 +4,12 @@ from models.categorical import (
     LogRegWrapper
 )
 
-from models.numeric import (
-    ArimaRaw, 
-    ArimaLinear, 
-    ArimaNoTrend, 
-    ArimaLinearNoTrend,
-)
+# from models.numeric import (
+#     ArimaRaw, 
+#     ArimaLinear, 
+#     ArimaNoTrend, 
+#     ArimaLinearNoTrend,
+# )
 
 from models.categorical import (
     XGBWrapper,
@@ -190,8 +190,8 @@ def mySettings():
 if __name__ == '__main__':
     import quantiacsToolbox
     
-    model = 'logreg'
-    type = 'pct_tech_macro'
+    model = 'arima_ensemble'
+    type = 'mlp'
     thresholds = [round(0.05 * x, 2) for x in range(6, 15)]
     threshold_results = []
     sharpe_results = []
