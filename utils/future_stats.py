@@ -9,8 +9,8 @@ def market_stats(ret, long=True, short=True):
     settings = ret['settings']
     returns = ret['returns']
 
-    # Align index to data
-    settings['markets'].insert(0, 'fundEquity')
+    # Align index to data (not needed)
+    # settings['markets'].insert(0, 'fundEquity')
 
     # From quantiacsToolbox.plotts (line 1000)
     records = []
@@ -47,7 +47,8 @@ def market_stats(ret, long=True, short=True):
         equityList = equityList[:, (settings['lookback'] - 1):]  # y values for all individual markets
 
         # Long & Short Selected
-        if long and short:  
+        if long and short:
+            print(equityList)
             y_Equity = equityList[index - 1]
 
         # Long Selected
@@ -62,6 +63,6 @@ def market_stats(ret, long=True, short=True):
 
     results = pd.DataFrame.from_records(records)
     results.index = settings['markets']
-    results = results.drop(['fundEquity', 'CASH'])
+    results = results.drop(['CASH'])
 
     return results
