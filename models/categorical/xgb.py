@@ -9,7 +9,8 @@ SAVED_DIR = "/saved_models/categorical/xgb"
 FUTURES_LIST = utils.futuresList
 
 class XGBWrapper:
-    SAVED_DIR = 'saved_models/categorical/xgb/val/pct'
+    SAVED_DIR = 'saved_models/categorical/xgb/final/pct_tech'
+    # SAVED_DIR = 'saved_models/categorical/xgb/val/pct'
     # SAVED_DIR = 'saved_models/categorical/xgb/val/pct_tech'
     # SAVED_DIR = 'saved_models/categorical/xgb/val/pct_macro'
     # SAVED_DIR = 'saved_models/categorical/xgb/val/pct_tech_macro'
@@ -30,7 +31,7 @@ class XGBWrapper:
             y_pred_pos = y_pred[:, 1][-1] # get probability of class 1
             y_pred_norm = y_pred_pos - 0.5 # normalise to include long and short
             y_pred_norm_long = max(0, y_pred_pos - threshold) # long only
-            return y_pred_norm_long # returns only last value
+            return y_pred_pos # returns only last value
         except:
             print("invalid")
             return 0 # input invalid
