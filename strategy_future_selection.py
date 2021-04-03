@@ -7,7 +7,8 @@
 
 from models.categorical import (
     LogRegWrapper,
-    RFWrapper
+    RFWrapper,
+    XGBWrapper
 )
 
 from strategy import (
@@ -31,7 +32,8 @@ from tqdm import tqdm
 # Load saved models
 SAVED_MODELS = {
     # 'logreg': LogRegWrapper,
-    'rf': RFWrapper,
+    # 'rf': RFWrapper,
+    'xgb': XGBWrapper
 }
 
 LOADED_MODELS = {}
@@ -170,8 +172,8 @@ def mySettings():
     ''' Define your trading system settings here '''
     settings= {}
     settings['markets']  = utils.futuresAllList
-    settings['beginInSample'] = '20190123' # '20181020'
-    settings['endInSample'] = '20210331' # '20201231'
+    settings['beginInSample'] =  '20190123' # '20181020'
+    settings['endInSample'] =  '20210331' # '20201231'
     settings['lookback']= 504
     settings['budget']= 10**6
     settings['slippage']= 0.05
@@ -182,7 +184,7 @@ def mySettings():
     settings['magnitude'] = []
     settings['previous_position'] = []
 
-    settings['subset'] = 'model_metrics/future_subset/rf_pct_tech_macro.csv' # None
+    settings['subset'] = 'model_metrics/future_subset/xgb_pct_tech.csv' # None
 
     return settings
 
@@ -195,7 +197,7 @@ if __name__ == '__main__':
     # results = quantiacsToolbox.runts(__file__, plotEquity=False)
     # futureResults = utils.market_stats(results)
     # futureResults["trade"] = [1 if x > 0 else 0 for x in futureResults.sharpe]
-    # futureResults.to_csv(f'model_metrics/future_subset/rf_pct_tech_macro.csv')
+    # futureResults.to_csv(f'model_metrics/future_subset/xgb_pct_tech.csv')
 
     ## SECOND RUN ##
     ## CHANGE settings['subset'] TO FILE LOCATION e.g. 'model_metrics/future_subset/logreg_pct_macro.csv'
@@ -204,4 +206,4 @@ if __name__ == '__main__':
 
     futureResults = utils.market_stats(results)
     futureResults["trade"] = [1 if x > 0 else 0 for x in futureResults.sharpe]
-    futureResults.to_csv(f'model_metrics/future_subset/rf_pct_tech_macro_test.csv')
+    futureResults.to_csv(f'model_metrics/future_subset/xgb_pct_tech_test.csv')
