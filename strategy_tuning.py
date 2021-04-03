@@ -1,9 +1,3 @@
-from models.categorical import (
-    XGBWrapper,
-    RFWrapper,
-    LogRegWrapper
-)
-
 from models.numeric import (
     ArimaRaw, 
     ArimaLinear, 
@@ -17,9 +11,7 @@ from models.categorical import (
     ArimaEnsemble,
     LogRegWrapper
 )
-from models.numeric import (
-    Arima,
-)
+
 from strategy import (
     basic_strategy, 
     long_only,
@@ -152,7 +144,10 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     position = basic_strategy(sign[model], magnitude[model]) 
     
     # Cash-futures strategy
-    position = futures_only(position)
+    if settings['strategy'] == 'futures_hold':
+        position = strategies[settings['strategy']](position, settings['previous_position'])
+    else:
+        position = strategies[settings['strategy']](position)
 
     # Update persistent data across runs
     settings['sign'].append(sign)
@@ -182,7 +177,7 @@ def mySettings():
     settings['strategy'] = strategy
     settings['sign'] = []
     settings['magnitude'] = []
-    settings['previous_position'] = []
+    settings['previous_position'] = np.array([0] * len(utils.futuresList) + [1,])
 
     return settings
 
@@ -191,13 +186,12 @@ if __name__ == '__main__':
     import quantiacsToolbox
     
     model = 'logreg'
-    type = 'pct_tech_macro'
-    thresholds = [round(0.05 * x, 2) for x in range(6, 15)]
+    type = 'pct_macro'
+    thresholds = [round(0.05 * x, 2) for x in range(0, 20)]
     threshold_results = []
     sharpe_results = []
-    strategy_results = []
 
-    for strategy in ['futures_only', 'futures_hold_pos', 'cash_and_futures']:
+    for strategy in ['futures_only', 'futures_hold', 'cash_and_futures']:
         for threshold in tqdm(thresholds):
             with open('utils/strategy_tuning.txt', 'w') as file:
                 file.write(str(threshold) + '\n' + strategy)
@@ -206,11 +200,10 @@ if __name__ == '__main__':
             results = quantiacsToolbox.runts(__file__, plotEquity=False)
             sharpe = results["stats"]["sharpe"]
             sharpe_results.append(sharpe)
-            strategy_results.append(strategy)
             threshold_results.append(threshold)
     
-    # save results
-    results_df = pd.DataFrame({'strategy': strategy_results, 'threshold': threshold_results, 'sharpe': sharpe_results})
-    best_result_df = results_df.loc[results_df["sharpe"] == max(results_df["sharpe"])].reset_index(drop=True)
-    print(best_result_df)
-    results_df.to_csv(f'model_metrics/strategy_threshold/{model}_{type}.csv')
+        # save results
+        results_df = pd.DataFrame({'threshold': threshold_results, 'sharpe': sharpe_results})
+        best_result_df = results_df.loc[results_df["sharpe"] == max(results_df["sharpe"])].reset_index(drop=True)
+        print(strategy, best_result_df)
+        results_df.to_csv(f'model_metrics/strategy_threshold/{model}_{type}_{strategy}.csv')

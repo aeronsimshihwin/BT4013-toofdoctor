@@ -114,9 +114,13 @@ def CCI(high, low, close, periods=20):
     return CCIIndicator(high, low, close, periods).cci().tolist()
 
 def gradient(lst):
+    last = lst[-1]
+    res = 0
     for val in lst:
         if (not math.isnan(val)) and (val != 0):
-            return (lst[-1] - val)/val
+            res = (last - val)/val
+            break
+    return res
 
 def fourCandleHammer(df, N, highFactor, lowFactor, futures, macro_analysis):
     """

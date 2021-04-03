@@ -37,7 +37,7 @@ class ArimaEnsemble:
             self.future = future
             self.arima = dict()
             for y_var in self.arima_features:
-                with open(f'{self.ARIMA_DIR}/{y_var}/price/{future}.p', 'rb') as f:
+                with open(f'{self.ARIMA_DIR}/{y_var}/{future}.p', 'rb') as f:
                     self.arima[y_var] = pickle.load(f)
 
     def fit(self, data, future, **kwargs):
@@ -85,12 +85,12 @@ class ArimaEnsemble:
                 features[X], features[y],
                 # eval_set = [(features[X], features[y])],
                 # eval_metric = 'mlogloss',
-                verbose = False,
+                # verbose = False,
             )
         
         return self
 
-    def predict(self, data, future):
+    def predict(self, data, future, threshold=0.3):
         """Collates predictions from arima sub-models and passes them to a XGBoost meta-classifier"""
         self._load_arima(future)
         
@@ -104,6 +104,13 @@ class ArimaEnsemble:
             price_data.reset_index(drop=True), 
             arima_pred.reset_index(drop=True),
         ], axis=1)
+        features = features.ffill()
+        features = features.fillna(0)
 
-        results = self.model.predict(features)
-        return results[0]
+        try:
+            results = self.model.predict_proba(features)
+        except:
+            print(features.tail())
+            raise
+        y_pred = max(0, results[0][-1] - threshold) # Probs for long
+        return 0 if np.isnan(y_pred) else y_pred # long only
