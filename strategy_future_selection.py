@@ -1,12 +1,14 @@
-from models.numeric import (
-    ArimaRaw, 
-    ArimaLinear, 
-    ArimaNoTrend, 
-    ArimaLinearNoTrend,
-)
+# from models.numeric import (
+#     ArimaRaw, 
+#     ArimaLinear, 
+#     ArimaNoTrend, 
+#     ArimaLinearNoTrend,
+# )
 
 from models.categorical import (
-    LogRegWrapper
+    LogRegWrapper,
+    RFWrapper,
+    XGBWrapper
 )
 
 from strategy import (
@@ -29,7 +31,9 @@ from tqdm import tqdm
 
 # Load saved models
 SAVED_MODELS = {
-    'logreg': LogRegWrapper
+    # 'logreg': LogRegWrapper,
+    # 'rf': RFWrapper,
+    'xgb': XGBWrapper
 }
 
 LOADED_MODELS = {}
@@ -150,10 +154,11 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     position = basic_strategy(sign[model], magnitude[model]) 
     
     # Cash-futures strategy
-    if not settings['subset']:
-        position = futures_only(position)
-    else:
-        position = futures_subset(position, subset_csv=settings['subset'])
+    # if not settings['subset']:
+    #     position = futures_only(position)
+    # else:
+    #     position = futures_subset(position, subset_csv=settings['subset'])
+    position = futures_subset(position, subset_csv=settings['subset'])
 
     # Update persistent data across runs
     settings['sign'].append(sign)
@@ -167,8 +172,8 @@ def mySettings():
     ''' Define your trading system settings here '''
     settings= {}
     settings['markets']  = utils.futuresAllList
-    settings['beginInSample'] = '20181020'
-    settings['endInSample'] = '20201231'
+    settings['beginInSample'] =  '20190123' # '20181020'
+    settings['endInSample'] =  '20210331' # '20201231'
     settings['lookback']= 504
     settings['budget']= 10**6
     settings['slippage']= 0.05
@@ -179,7 +184,7 @@ def mySettings():
     settings['magnitude'] = []
     settings['previous_position'] = []
 
-    settings['subset'] = 'model_metrics/future_subset/logreg_pct_macro.csv' # None
+    settings['subset'] = 'model_metrics/future_subset/xgb_pct_tech.csv' # None
 
     return settings
 
@@ -192,9 +197,13 @@ if __name__ == '__main__':
     # results = quantiacsToolbox.runts(__file__, plotEquity=False)
     # futureResults = utils.market_stats(results)
     # futureResults["trade"] = [1 if x > 0 else 0 for x in futureResults.sharpe]
-    # futureResults.to_csv(f'model_metrics/future_subset/logreg_pct_macro.csv')
+    # futureResults.to_csv(f'model_metrics/future_subset/xgb_pct_tech.csv')
 
     ## SECOND RUN ##
     ## CHANGE settings['subset'] TO FILE LOCATION e.g. 'model_metrics/future_subset/logreg_pct_macro.csv'
-    results = quantiacsToolbox.runts(__file__, plotEquity=False)
+    results = quantiacsToolbox.runts(__file__, plotEquity=True)
     print("sharpe:", results["stats"]["sharpe"])
+
+    futureResults = utils.market_stats(results)
+    futureResults["trade"] = [1 if x > 0 else 0 for x in futureResults.sharpe]
+    futureResults.to_csv(f'model_metrics/future_subset/xgb_pct_tech_test.csv')

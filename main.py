@@ -30,13 +30,13 @@ import utils
 
 # Load saved models
 SAVED_MODELS = {
-    # 'rf': RFWrapper,
-    # 'xgb': XGBWrapper,
-    # 'arima+xgb': ArimaEnsemble,
+    'rf': RFWrapper,
+    'xgb': XGBWrapper,
     'logreg': LogRegWrapper,
-    # 'fourCandleHammer': fourCandleHammerWrapper,
-    # 'emaStrategy': emaStrategyWrapper,
-    # 'swing': swingSetupWrapper
+    'fourCandleHammer': fourCandleHammerWrapper,
+    'emaStrategy': emaStrategyWrapper,
+    'swing': swingSetupWrapper,
+    'arima+xgb': ArimaEnsemble,
 }
 
 LOADED_MODELS = {}
@@ -44,6 +44,7 @@ for name, model in SAVED_MODELS.items():
     print(f'loading {name} from {model.SAVED_DIR}...')
     for future in utils.futuresList:
         pickle_path = f'{model.SAVED_DIR}/{future}.p'
+        # print(pickle_path)
         try:
             with open(pickle_path, 'rb') as f:
                 LOADED_MODELS[name, future] = pickle.load(f)
@@ -149,17 +150,35 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     prediction = pd.DataFrame(index=utils.futuresList)
     for (name, future), model in tqdm(settings['models'].items()):
         prediction.loc[future, name] = model.predict(data, future)
+
+    ## UNCOMMENT THIS PART TO RUN META MODEL
+    # for future in tqdm(utils.futuresList):
+    #     # read final meta model file
+    #     with open(f"saved_models/meta/meta_model_final/{future}.p", "rb") as f:
+    #         future_meta_model = pickle.load(f)
+    #     # predict
+    #     meta_X = prediction.loc[future]
+    #     # print(meta_X)
+    #     meta_X = meta_X[['logreg', 'rf', 'xgb', 'arima+xgb', 'emaStrategy', 'fourCandleHammer', 'swing']].to_numpy()
+    #     # print(meta_X)
+    #     meta_X = meta_X.reshape((1,-1))
+    #     # print(meta_X)
+    #     # print(future_meta_model.predict_proba(meta_X)[:, 1])
+    #     prediction.loc[future, 'meta'] = future_meta_model.predict_proba(meta_X)[:, 1]
+
     sign = utils.sign(prediction)
     magnitude = utils.magnitude(prediction)
-    
+
     # Futures strategy (Allocate position based on predictions)
     model = prediction.columns[0] # Arbitrarily pick first model in case of multiple
+    # model = 'meta' # Uncomment this line to run meta model
     position = basic_strategy(sign[model], magnitude[model]) 
     # position = long_only(sign[model], magnitude[model]) 
     # position = short_only(sign[model], magnitude[model]) 
     
     # Cash-futures strategy
     position = futures_only(position)
+    # position = cash_and_futures(position)
 
     # Update persistent data across runs
     settings['sign'].append(sign)
