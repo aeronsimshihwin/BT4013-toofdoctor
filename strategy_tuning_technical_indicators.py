@@ -1,15 +1,9 @@
-from models.categorical import (
-    XGBWrapper,
-    RFWrapper,
-    LogRegWrapper
-)
-
-from models.numeric import (
-    ArimaRaw, 
-    ArimaLinear, 
-    ArimaNoTrend, 
-    ArimaLinearNoTrend,
-)
+# from models.numeric import (
+#     ArimaRaw, 
+#     ArimaLinear, 
+#     ArimaNoTrend, 
+#     ArimaLinearNoTrend,
+# )
 
 from models.categorical import (
     XGBWrapper,
@@ -32,6 +26,7 @@ from strategy import (
     futures_only,
     futures_hold,
     cash_and_futures,
+    strategies_eval
 )
 
 import utils
@@ -41,7 +36,25 @@ import pandas as pd
 from tqdm import tqdm
 
 # Must be imported last
-from main import LOADED_MODELS
+# from main import LOADED_MODELS
+
+# Load saved models
+SAVED_MODELS = {
+    # "fourCandleHammer": fourCandleHammerWrapper
+    # "emaStrategy": emaStrategyWrapper
+    "swing": swingSetupWrapper
+}
+
+LOADED_MODELS = {}
+for name, model in SAVED_MODELS.items():
+    print(f'loading {name} from {model.SAVED_DIR}...')
+    for future in utils.futuresList:
+        pickle_path = f'{model.SAVED_DIR}/{future}.p'
+        try:
+            with open(pickle_path, 'rb') as f:
+                LOADED_MODELS[name, future] = pickle.load(f)
+        except:
+            raise FileNotFoundError(f'No saved {name} for {future}!')
 
 strategies = {
     'futures_only': futures_only,
@@ -152,7 +165,9 @@ def myTradingSystem(DATE, OPEN, HIGH, LOW, CLOSE, VOL, USA_ADP, USA_EARN,\
     
     # Futures strategy (Allocate position based on predictions)
     model = prediction.columns[0] # Arbitrarily pick first model in case of multiple
-    position = basic_strategy(sign[model], magnitude[model]) 
+    position = basic_strategy(sign[model], magnitude[model]) # Long and Short
+    # position = long_only(sign[model], magnitude[model]) # Long only
+    # position = short_only(sign[model], magnitude[model]) # Short only
     
     # Cash-futures strategy
     if settings['strategy'] == 'futures_hold':
@@ -182,6 +197,7 @@ def mySettings():
     settings['models'] = LOADED_MODELS
     
     with open('utils/strategy_tuning.txt','r') as f:
+        threshold = float(f.readline())
         strategy = f.readline()
         
     settings['strategy'] = strategy
@@ -195,19 +211,24 @@ def mySettings():
 if __name__ == '__main__':
     import quantiacsToolbox
     
-    model = 'fourCandleHammer'
+    model = 'swing' # 'emaStrategy', 'fourCandleHammer',
     sharpe_results = []
     strategy_results = []
 
     for strategy in ['futures_only', 'futures_hold', 'cash_and_futures']:
+        with open('utils/strategy_tuning.txt', 'w') as file:
+            file.write(str(0.75) + '\n' + strategy) # 0.75 is just a placeholder, will not be used for technical indicator strategy.
         # retrieve sharpe
+        print(f"Retrieving sharpe ratio for {model} with strategy: {strategy}")
         results = quantiacsToolbox.runts(__file__, plotEquity=False)
         sharpe = results["stats"]["sharpe"]
         sharpe_results.append(sharpe)
         strategy_results.append(strategy)
     
     # save results
+    print(f"Saving results for {model}")
     results_df = pd.DataFrame({'strategy': strategy_results, 'sharpe': sharpe_results})
     best_result_df = results_df.loc[results_df["sharpe"] == max(results_df["sharpe"])].reset_index(drop=True)
-    print(best_result_df)
+    # print(best_result_df)
+    print(f"Exporting csv file for {model}")
     results_df.to_csv(f'model_metrics/strategy_threshold/{model}.csv')
