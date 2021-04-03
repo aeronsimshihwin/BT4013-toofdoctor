@@ -16,7 +16,6 @@ model_predictions/numeric/arima/**/
 # saved_models/numeric/arima/**/
 windows.txt
 
-# temporary
-saved_models/categorical/rf
-saved_models/categorical/xgb
-categorical_stacking.ipynb
+# old models
+saved_models/archived
+saved_models/meta
