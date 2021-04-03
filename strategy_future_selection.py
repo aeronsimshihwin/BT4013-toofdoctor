@@ -1,12 +1,13 @@
-from models.numeric import (
-    ArimaRaw, 
-    ArimaLinear, 
-    ArimaNoTrend, 
-    ArimaLinearNoTrend,
-)
+# from models.numeric import (
+#     ArimaRaw, 
+#     ArimaLinear, 
+#     ArimaNoTrend, 
+#     ArimaLinearNoTrend,
+# )
 
 from models.categorical import (
-    LogRegWrapper
+    LogRegWrapper,
+    RFWrapper
 )
 
 from strategy import (
@@ -29,7 +30,8 @@ from tqdm import tqdm
 
 # Load saved models
 SAVED_MODELS = {
-    'logreg': LogRegWrapper
+    # 'logreg': LogRegWrapper,
+    'rf': RFWrapper,
 }
 
 LOADED_MODELS = {}
@@ -167,8 +169,8 @@ def mySettings():
     ''' Define your trading system settings here '''
     settings= {}
     settings['markets']  = utils.futuresAllList
-    settings['beginInSample'] = '20181020'
-    settings['endInSample'] = '20201231'
+    settings['beginInSample'] = '20190123' # '20181020'
+    settings['endInSample'] = '20210331' # '20201231'
     settings['lookback']= 504
     settings['budget']= 10**6
     settings['slippage']= 0.05
@@ -179,7 +181,7 @@ def mySettings():
     settings['magnitude'] = []
     settings['previous_position'] = []
 
-    settings['subset'] = 'model_metrics/future_subset/logreg_pct_macro.csv' # None
+    settings['subset'] = 'model_metrics/future_subset/rf_pct_tech_macro.csv' # None
 
     return settings
 
@@ -192,9 +194,13 @@ if __name__ == '__main__':
     # results = quantiacsToolbox.runts(__file__, plotEquity=False)
     # futureResults = utils.market_stats(results)
     # futureResults["trade"] = [1 if x > 0 else 0 for x in futureResults.sharpe]
-    # futureResults.to_csv(f'model_metrics/future_subset/logreg_pct_macro.csv')
+    # futureResults.to_csv(f'model_metrics/future_subset/rf_pct_tech_macro.csv')
 
     ## SECOND RUN ##
     ## CHANGE settings['subset'] TO FILE LOCATION e.g. 'model_metrics/future_subset/logreg_pct_macro.csv'
-    results = quantiacsToolbox.runts(__file__, plotEquity=False)
+    results = quantiacsToolbox.runts(__file__, plotEquity=True)
     print("sharpe:", results["stats"]["sharpe"])
+
+    futureResults = utils.market_stats(results)
+    futureResults["trade"] = [1 if x > 0 else 0 for x in futureResults.sharpe]
+    futureResults.to_csv(f'model_metrics/future_subset/rf_pct_tech_macro_test.csv')

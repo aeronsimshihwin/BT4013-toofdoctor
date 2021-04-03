@@ -17,7 +17,7 @@ def futures_only(futures_only_pos_vector):
 def futures_hold(futures_only_pos_vector, previous_position):
     if np.sum(np.abs(futures_only_pos_vector)) != 0:
         complete_pos_vector = np.array([*futures_only_pos_vector, 0.0])
-        print(complete_pos_vector)
+        # print(complete_pos_vector)
         return complete_pos_vector
     else:
         return previous_position
@@ -26,8 +26,8 @@ def futures_subset(futures_only_pos_vector, subset_csv):
     '''
     trade only futures with positive sharpe on validation set
     '''
-    if np.sum(np.abs(futures_only_pos_vector)) != 0:
-        complete_pos_vector = np.array([*futures_only_pos_vector, 0.0])
+    if np.sum(np.abs(futures_only_pos_vector)) == 0:
+        complete_pos_vector = np.array([*futures_only_pos_vector, 1.0])
         return complete_pos_vector
     else:
         subset_df = pd.read_csv(subset_csv)
