@@ -10,10 +10,7 @@ FUTURES_LIST = utils.futuresList
 
 class XGBWrapper:
     SAVED_DIR = 'saved_models/categorical/xgb/final/pct_tech'
-    # SAVED_DIR = 'saved_models/categorical/xgb/val/pct'
-    # SAVED_DIR = 'saved_models/categorical/xgb/val/pct_tech'
-    # SAVED_DIR = 'saved_models/categorical/xgb/val/pct_macro'
-    # SAVED_DIR = 'saved_models/categorical/xgb/val/pct_tech_macro'
+    # SAVED_DIR = 'saved_models/categorical/xgb/validation/pct_tech'
     
     def __init__(self, model=None, y=None, X=None):
         self.model = model
