@@ -7,8 +7,8 @@ from sklearn.ensemble import RandomForestClassifier
 FUTURES_LIST = utils.futuresList
 
 class RFWrapper:
-    # SAVED_DIR = 'saved_models/categorical/rf/final/pct_tech_macro'
-    SAVED_DIR = 'saved_models/categorical/rf/validation/pct_tech_macro'
+    SAVED_DIR = 'saved_models/categorical/rf/final/pct_tech_macro'
+    # SAVED_DIR = 'saved_models/categorical/rf/validation/pct_tech_macro'
     
     def __init__(self, model=None, y=None, X=None):
         self.model = model
