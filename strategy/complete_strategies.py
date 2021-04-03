@@ -17,7 +17,7 @@ def futures_only(futures_only_pos_vector):
 def futures_hold(futures_only_pos_vector, previous_position):
     if np.sum(np.abs(futures_only_pos_vector)) != 0:
         complete_pos_vector = np.array([*futures_only_pos_vector, 0.0])
-        print(complete_pos_vector)
+        # print(complete_pos_vector)
         return complete_pos_vector
     else:
         return previous_position
