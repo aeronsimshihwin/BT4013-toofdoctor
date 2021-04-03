@@ -20,8 +20,8 @@ from strategy import (
     cash_and_futures,
 )
 
-INPUT = "future_preds_dict_2"
-OUTPUT = "lr_thresh_futures_cash_tuning_results"
+INPUT = "future_preds_dict_3"
+OUTPUT = "tuning_result_thresh_3"
 
 def myTradingSystem(DATE, settings):
     ''' This system uses trend following techniques to allocate capital into the desired equities'''
@@ -44,7 +44,7 @@ def myTradingSystem(DATE, settings):
             future_pred = preds_dict_final[future].loc[datetime.strptime(str(DATE[-1]), '%Y%m%d')][0]
             prediction.loc[future, 'meta'] = future_pred
         except:
-            # print('ERROR: ', future, str(DATE[-1]))
+            print('ERROR: ', future, str(DATE[-1]))
             prediction.loc[future, 'meta'] = 0
 
     sign = utils.sign(prediction)
@@ -54,9 +54,11 @@ def myTradingSystem(DATE, settings):
     position = fixed_threshold_strategy(sign['meta'], magnitude['meta'], settings['threshold'])
 
     # Cash-futures strategy
-    # position = futures_only(position)
+    position = futures_only(position)
     # position = futures_hold(position, settings['previous_position'])
-    position = cash_and_futures(position)
+    # position = cash_and_futures(position)
+
+    # print(position)
 
     # Update persistent data across runs
     settings['sign'].append(sign)
@@ -108,12 +110,13 @@ if __name__ == '__main__':
     # final params
     xgbParams = [{'booster': ['gbtree'],
                 'learning_rate': [0.01], # default 0.3
-                'gamma': [1], # higher means more regularization
+                'gamma': [0], # higher means more regularization
                 'max_depth': [2]}]
     parameter_grid = list(ParameterGrid(xgbParams))
 
     # thresholds = [round(0.05 * x, 2) for x in range(0, 20)]
     thresholds = [round(0.1 * x, 1) for x in range(0, 10)]
+    # thresholds = [0]
 
     for i in range(len(parameter_grid)):
         param_set = parameter_grid[i]
