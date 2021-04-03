@@ -14,8 +14,7 @@ def market_stats(ret, long=True, short=True):
 
     # From quantiacsToolbox.plotts (line 1000)
     records = []
-    markets = list(settings['markets'])[:88] # Ignore cash
-    for index, market in enumerate(markets):
+    for index, market in enumerate(settings['markets']):
 
         # Prepare all the y-axes
         equityList = np.transpose(np.array(mEquity))
