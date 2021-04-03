@@ -47,7 +47,7 @@ def market_stats(ret, long=True, short=True):
 
         # Long & Short Selected
         if long and short:
-            print(equityList)
+            # print(equityList)
             y_Equity = equityList[index - 1]
 
         # Long Selected
@@ -60,8 +60,10 @@ def market_stats(ret, long=True, short=True):
 
         records.append(stats(y_Equity))
 
+        # print(index, market, y_Equity)
+
     results = pd.DataFrame.from_records(records)
     results.index = settings['markets']
-    results = results.drop(['CASH'])
+    # results = results.drop(['CASH'])
 
     return results
