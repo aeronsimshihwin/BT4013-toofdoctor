@@ -294,6 +294,7 @@ def ema_strategy(df, shortTermDays, longTermDays, NDays, futures, macro_analysis
         start_idx += 1
 
     if len(long_short) != df.shape[0]: # Check
+        print("ERROR!")
         print(len(long_short))
         print(df.shape[0])
         return False 
@@ -382,6 +383,7 @@ def swing_setup(df, shortTermDays, longTermDays, NDays, futures, macro_analysis)
         start_idx += 1
         
     if len(long_short) != df.shape[0]: # Check
+        print("ERROR!")
         print(len(long_short))
         print(df.shape[0])
         return False 
