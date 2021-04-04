@@ -20,8 +20,8 @@ from strategy import (
     cash_and_futures,
 )
 
-INPUT = "future_preds_dict_3"
-OUTPUT = "tuning_result_thresh_3"
+INPUT = "future_preds_dict_1"
+OUTPUT = "tuning_result_1"
 
 def myTradingSystem(DATE, settings):
     ''' This system uses trend following techniques to allocate capital into the desired equities'''
@@ -110,13 +110,13 @@ if __name__ == '__main__':
     # final params
     xgbParams = [{'booster': ['gbtree'],
                 'learning_rate': [0.01], # default 0.3
-                'gamma': [0], # higher means more regularization
+                'gamma': [1], # higher means more regularization
                 'max_depth': [2]}]
     parameter_grid = list(ParameterGrid(xgbParams))
 
     # thresholds = [round(0.05 * x, 2) for x in range(0, 20)]
-    thresholds = [round(0.1 * x, 1) for x in range(0, 10)]
-    # thresholds = [0]
+    # thresholds = [round(0.1 * x, 1) for x in range(0, 10)]
+    thresholds = [0]
 
     for i in range(len(parameter_grid)):
         param_set = parameter_grid[i]
@@ -130,11 +130,11 @@ if __name__ == '__main__':
                 file.write(str(threshold))
 
             # retrieve sharpe
-            results = quantiacsToolbox.runts(__file__, plotEquity=False)
+            results = quantiacsToolbox.runts(__file__, plotEquity=True)
             sharpe = results["stats"]["sharpe"]
 
             # save results
             print(params, threshold, sharpe)
             sharpe_results = sharpe_results.append({'params': params, 'threshold': threshold, 'sharpe': sharpe}, ignore_index=True)
     
-    sharpe_results.to_csv(f"meta_model_predictions/{OUTPUT}.csv", index=False)
+    # sharpe_results.to_csv(f"meta_model_predictions/{OUTPUT}.csv", index=False)
