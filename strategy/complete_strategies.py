@@ -32,7 +32,6 @@ def futures_subset(futures_only_pos_vector, subset_csv):
     else:
         subset_df = pd.read_csv(subset_csv)
         trade_mask = list(subset_df.trade)
-        print(trade_mask)
         trade_pos = [x[0] * x[1] for x in zip(futures_only_pos_vector, trade_mask)]
         complete_pos_vector = np.array([*trade_pos, 0.0])
         return complete_pos_vector
